@@ -8,7 +8,8 @@ class Widget(object):
     '''
     a HTML widget
     '''
-    def __init(self):
+    def __init__(self,indent=""):
+        self.indent=indent
         pass
     
     def __str__(self):
@@ -19,7 +20,7 @@ class Link(Widget):
     '''
     a HTML link
     '''
-    def __init__(self,url,title,tooltip=None):
+    def __init__(self,url,title,tooltip=None,indent=""):
         '''
         constructor
         
@@ -28,19 +29,20 @@ class Link(Widget):
             title(str): the title
             tooltip(str): the tooltip (if any)
         '''
+        super().__init__(indent=indent)
         self.url=url
         self.title=title
         self.tooltip=tooltip
         
     def render(self):
-        html="<a href='%s'>%s</a>" % (self.url,self.title)
+        html="%s<a href='%s'>%s</a>" % (self.indent,self.url,self.title)
         return html
         
 class Image(Widget):
     '''
     a HTML Image
     '''
-    def __init__(self,url,alt=None,width=None,height=None):
+    def __init__(self,url,alt=None,width=None,height=None,indent=""):
         '''
         constructor
         
@@ -48,6 +50,7 @@ class Image(Widget):
             url(str):  the link 
             alt(str):  alternative image representation (if any)
         '''
+        super().__init__(indent=indent)
         self.url=url
         if alt is not None:
             self.alt=alt
@@ -66,7 +69,7 @@ class Image(Widget):
         width=" width='%d'" % self.width if self.width is not None else ""
         height=" height='%d'" % self.height if self.height is not None else ""
         
-        html="<img src='%s' alt='%s'%s%s/>" % (self.url,self.alt,width,height)
+        html="%s<img src='%s' alt='%s'%s%s/>" % (self.indent,self.url,self.alt,width,height)
         return html
     
 class MenuItem(Widget):
@@ -74,7 +77,7 @@ class MenuItem(Widget):
     a menu item
     '''
     
-    def __init__(self,url:str,title:str,active:bool=False):
+    def __init__(self,url:str,title:str,active:bool=False,indent=""):
         '''
         constructor
         
@@ -83,6 +86,7 @@ class MenuItem(Widget):
             title(str): the title of the menu item
             active(bool): whether the link is initially active 
         '''
+        super().__init__(indent=indent)
         self.url=url
         self.title=title
         self.active=active
@@ -95,7 +99,7 @@ class MenuItem(Widget):
             str: html code for MenuItem
         '''
         activeState='active' if self.active else ''
-        html='''<li class="nav-item %s">
-        <a class="nav-link" href="%s">%s</a>
-      </li>''' % (activeState,self.url,self.title)
+        html='''%s<li class="nav-item %s">
+%s  <a class="nav-link" href="%s">%s</a>
+%s</li>''' % (self.indent,activeState,self.indent,self.url,self.title,self.indent)
         return html

@@ -4,7 +4,7 @@ Created on 2021-01-04
 @author: wf
 '''
 import unittest
-from fb4.widgets import Link,Image,Widget
+from fb4.widgets import Link,Image,MenuItem,Widget
 
 class TestWidgets(unittest.TestCase):
     '''
@@ -27,11 +27,15 @@ class TestWidgets(unittest.TestCase):
         '''
         widgets=[
             Link("http://www.bitplan.com","BITPlan webPage"),
-            Image("http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png",alt='BITPlan Logo')
+            Image("http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png",alt='BITPlan Logo'),
+            MenuItem("http://test.bitplan.com","BITPlan testSite",True)
         ]
         expectedHtml=[
             "<a href='http://www.bitplan.com'>BITPlan webPage</a>",
-            "<img src='http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png' alt='BITPlan Logo'/>"
+            "<img src='http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png' alt='BITPlan Logo'/>",
+            """<li class="nav-item active">
+  <a class="nav-link" href="http://test.bitplan.com">BITPlan testSite</a>
+</li>"""
             ]
         for i,widget in enumerate(widgets):
             self.assertTrue(isinstance(widget,Widget))
