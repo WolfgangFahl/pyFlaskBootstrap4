@@ -35,7 +35,7 @@ setup(name='pyFlaskBootstrap4',
             'Programming Language :: Python :: 3.8',
             'Programming Language :: Python :: 3.9'
       ],
-      packages=['frontend'],
+      packages=['fb4'],
       package_data={
           'templates': ['*.html'],
       },
