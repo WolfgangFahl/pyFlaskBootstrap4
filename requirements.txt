@@ -7,3 +7,5 @@ requests
 # basic auth
 # https://pypi.org/project/Flask-HTTPAuth/
 Flask-HTTPAuth
+#https://pypi.org/project/pydevd/
+pydevd
