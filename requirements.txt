@@ -1,0 +1,9 @@
+# web server
+# https://pypi.org/project/Flask/
+Flask
+# requests (for forwarding)
+# https://pypi.org/project/requests/
+requests
+# basic auth
+# https://pypi.org/project/Flask-HTTPAuth/
+Flask-HTTPAuth
