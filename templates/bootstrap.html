@@ -1,0 +1,6 @@
+{% import 'macros.html' as macros %}
+{{ macros.header(title) }}
+{% if menuList %}{{ macros.menu(menuList) }}{%endif %}
+{% if content is not none %}{{ content|safe }}{%endif %}
+{% if error is not none %}<span style="color:red">Error: {{ error }}</span>{%endif %}
+{{ macros.footer() }}

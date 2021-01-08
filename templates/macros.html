@@ -1,0 +1,73 @@
+{# 
+   Useful Jinja Template Macros
+   
+   e.g. table4DictList
+   https://stackoverflow.com/a/42848018/1497139
+#}
+{# show html header #}
+{% macro header(title) -%}
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+
+    {% if title is not none %}<title>{{ title }}</title>{%endif %}
+  </head>
+  <body>
+{%- endmacro %}
+{# show html footer #}
+{% macro footer() -%}
+	<!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+  </body>
+</html>
+{%- endmacro %}    
+{# menu see https://getbootstrap.com/docs/4.0/components/navbar/ #}
+{% macro menu(menuList) -%}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+ <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+    {% if menuList %}
+    {% for menuItem in menuList %}
+    {{ menuItem|safe }}
+    {% endfor %}
+    {% endif %}
+    </ul>
+ </div>   
+</nav>
+{%- endmacro %}
+{# table for dict list #}
+{% macro table4DictList(dictList) -%}
+<table class="table table-bordered table-hover">
+  <!-- table header -->
+  {% if dictList %}
+  <thead class="thead-light">
+  	<tr>
+  		<th>#</th>
+    	{% for key in dictList[0] %}
+    	<th> {{ key }} </th>
+    	{% endfor %}
+ 	</tr>
+  <thead>
+  <tbody>	
+    <!-- table rows -->
+    {% for dict_item in dictList %}
+    <tr>
+       <td> {{loop.index}} </td>
+       {% for value in dict_item.values() %}
+       <td>  {{ value|safe }} </td>
+       {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>  
+  {% endif %}
+</table>
+{%- endmacro %}
