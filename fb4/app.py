@@ -16,7 +16,7 @@ class AppWrap:
     Wrapper for Flask Web Application 
     '''
     
-    def __init__(self, host:str='0.0.0.0', port:int=8234, debug:bool=False):
+    def __init__(self, host:str='0.0.0.0', port:int=8234, debug:bool=False,template_folder=None):
         '''
         constructor
         
@@ -28,9 +28,11 @@ class AppWrap:
         self.debug = debug
         self.port = port
         self.host = host    
-   
-        scriptdir = os.path.dirname(os.path.abspath(__file__))
-        self.app = Flask(__name__, template_folder=scriptdir + '/../templates')
+        if template_folder is None:
+            scriptdir = os.path.dirname(os.path.abspath(__file__))
+            template_folder=scriptdir + '/../templates'
+    
+        self.app = Flask(__name__, template_folder=template_folder)
         # pimp up jinja2
         self.app.jinja_env.globals.update(isinstance=isinstance)
         self.auth= HTTPBasicAuth()
