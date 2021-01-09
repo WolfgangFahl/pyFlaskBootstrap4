@@ -151,7 +151,9 @@
             
   <h1>Source code for fb4_example.helloweb</h1><div class="highlight"><pre>
 <span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">Created on 2021</span>
+<span class="sd">Created on 2021-01-08</span>
+
+<span class="sd">This is a demo application for https://github.com/WolfgangFahl/pyFlaskBootstrap4</span>
 
 <span class="sd">@author: wf</span>
 <span class="sd">&#39;&#39;&#39;</span>
@@ -170,7 +172,10 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         
 <div class="viewcode-block" id="HelloWeb.home"><a class="viewcode-back" href="../../fb4_example.html#fb4_example.helloweb.HelloWeb.home">[docs]</a>    <span class="k">def</span> <span class="nf">home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">html</span> <span class="o">=</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;bootstrap.html&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;Welcome to the Flask + Bootstrap4 Demo web application&quot;</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        render the home page of the HelloWeb application</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">html</span> <span class="o">=</span> <span class="n">render_template</span><span class="p">(</span><span class="s2">&quot;bootstrap.html&quot;</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;HelloWeb demo application&quot;</span><span class="p">,</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;Welcome to the Flask + Bootstrap4 Demo web application&quot;</span><span class="p">,</span><span class="n">error</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">html</span></div></div>
     
 <span class="n">helloWeb</span><span class="o">=</span><span class="n">HelloWeb</span><span class="p">()</span>
