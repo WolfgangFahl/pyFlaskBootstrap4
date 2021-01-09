@@ -16,7 +16,7 @@ class AppWrap:
     Wrapper for Flask Web Application 
     '''
     
-    def __init__(self, host='0.0.0.0', port=8234, debug=False):
+    def __init__(self, host:str='0.0.0.0', port:int=8234, debug:bool=False):
         '''
         constructor
         
@@ -37,13 +37,14 @@ class AppWrap:
         self.baseUrl=""
         
     @staticmethod
-    def splitPath(path):
+    def splitPath(path:str):
         '''
         split the given path
+        
         Args:
             path(str): the path to split
         Returns:
-            str,str: the site of the path an the actual path
+            str: the site of the path an the actual path
         '''
         # https://stackoverflow.com/questions/2136556/in-python-how-do-i-split-a-string-and-keep-the-separators
         parts = path.split(r"/")
@@ -76,6 +77,9 @@ class AppWrap:
     def run(self,args):
         '''
         start the flask webserver
+        
+        Args:
+            args(): the parser args
         '''
         self.debug=args.debug
         self.baseUrl=args.baseUrl
@@ -84,6 +88,15 @@ class AppWrap:
     
     @staticmethod
     def getParser(description:str):
+        '''
+        get the parser with the given description
+        
+        Args:
+            description(str): the description text to be shown in the usage
+            
+        Returns:
+            ArgumentParser: the parser
+        '''
         parser = argparse.ArgumentParser(description=description)
         parser.add_argument('--baseUrl',default='',help='base url to use for links to this site')
         parser.add_argument('--debug',
@@ -97,6 +110,12 @@ class AppWrap:
         return parser
         
     def optionalDebug(self,args):   
+        '''
+        start the remote debugger if the arguments specify so
+        
+        Args:
+            args(): The command line arguments
+        '''
         if args.debugServer:
             import pydevd
             print (args.debugPathMapping,flush=True)

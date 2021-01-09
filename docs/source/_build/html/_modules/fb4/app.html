@@ -1,0 +1,335 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fb4.app &mdash; pyFlaskBootstrap4  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> pyFlaskBootstrap4
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../fb4.html">fb4 package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fb4_example.html">fb4_example package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../setup.html">setup module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tests.html">tests package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">pyFlaskBootstrap4</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>fb4.app</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for fb4.app</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on 2020-12-30</span>
+
+<span class="sd">@author: wf</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">render_template</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">flask_httpauth</span> <span class="kn">import</span> <span class="n">HTTPBasicAuth</span>
+<span class="kn">from</span> <span class="nn">pydevd_file_utils</span> <span class="kn">import</span> <span class="n">setup_client_server_paths</span>
+
+<div class="viewcode-block" id="AppWrap"><a class="viewcode-back" href="../../fb4.html#fb4.app.AppWrap">[docs]</a><span class="k">class</span> <span class="nc">AppWrap</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39; </span>
+<span class="sd">    Wrapper for Flask Web Application </span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">host</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;0.0.0.0&#39;</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span><span class="nb">int</span><span class="o">=</span><span class="mi">8234</span><span class="p">,</span> <span class="n">debug</span><span class="p">:</span><span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        constructor</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            host(str): flask host</span>
+<span class="sd">            port(int): the port to use for http connections</span>
+<span class="sd">            debug(bool): True if debugging should be switched on</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">host</span> <span class="o">=</span> <span class="n">host</span>    
+   
+        <span class="n">scriptdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">template_folder</span><span class="o">=</span><span class="n">scriptdir</span> <span class="o">+</span> <span class="s1">&#39;/../templates&#39;</span><span class="p">)</span>
+        <span class="c1"># pimp up jinja2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">jinja_env</span><span class="o">.</span><span class="n">globals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">isinstance</span><span class="o">=</span><span class="nb">isinstance</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auth</span><span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">baseUrl</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+        
+<div class="viewcode-block" id="AppWrap.splitPath"><a class="viewcode-back" href="../../fb4.html#fb4.app.AppWrap.splitPath">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">splitPath</span><span class="p">(</span><span class="n">path</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        split the given path</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            path(str): the path to split</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: the site of the path an the actual path</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c1"># https://stackoverflow.com/questions/2136556/in-python-how-do-i-split-a-string-and-keep-the-separators</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">site</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">site</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="s2">&quot;/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">part</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">site</span><span class="p">,</span> <span class="n">path</span></div>
+    
+<div class="viewcode-block" id="AppWrap.error"><a class="viewcode-back" href="../../fb4.html#fb4.app.AppWrap.error">[docs]</a>    <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span><span class="n">error</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        render the given error with the given title</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            title(str): the title to display</span>
+<span class="sd">            error(str): the error to display</span>
+<span class="sd">    </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            str: the html code</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">template</span><span class="o">=</span><span class="s2">&quot;bootstrap.html&quot;</span>
+        <span class="n">title</span><span class="o">=</span><span class="n">title</span>
+        <span class="n">content</span><span class="o">=</span><span class="kc">None</span>
+        <span class="n">html</span><span class="o">=</span><span class="n">render_template</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">html</span></div>
+    
+<div class="viewcode-block" id="AppWrap.run"><a class="viewcode-back" href="../../fb4.html#fb4.app.AppWrap.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        start the flask webserver</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            args(): the parser args</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">baseUrl</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">baseUrl</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">port</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">host</span><span class="p">)</span>   
+        <span class="k">pass</span></div>
+    
+<div class="viewcode-block" id="AppWrap.getParser"><a class="viewcode-back" href="../../fb4.html#fb4.app.AppWrap.getParser">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getParser</span><span class="p">(</span><span class="n">description</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        get the parser with the given description</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            description(str): the description text to be shown in the usage</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            ArgumentParser: the parser</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--baseUrl&#39;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="n">help</span><span class="o">=</span><span class="s1">&#39;base url to use for links to this site&#39;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--debug&#39;</span><span class="p">,</span>
+                                     <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                                     <span class="n">help</span><span class="o">=</span><span class="s2">&quot;run in debug mode&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--debugServer&#39;</span><span class="p">,</span>
+                                     <span class="n">help</span><span class="o">=</span><span class="s2">&quot;remote debug Server&quot;</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--debugPort&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                                     <span class="n">help</span><span class="o">=</span><span class="s2">&quot;remote debug Port&quot;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="mi">5678</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--debugPathMapping&#39;</span><span class="p">,</span><span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span><span class="n">help</span><span class="o">=</span><span class="s2">&quot;remote debug Server path mapping - needs two arguments 1st: remotePath 2nd: local Path&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">parser</span></div>
+        
+<div class="viewcode-block" id="AppWrap.optionalDebug"><a class="viewcode-back" href="../../fb4.html#fb4.app.AppWrap.optionalDebug">[docs]</a>    <span class="k">def</span> <span class="nf">optionalDebug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">args</span><span class="p">):</span>   
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        start the remote debugger if the arguments specify so</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            args(): The command line arguments</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">debugServer</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">pydevd</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">debugPathMapping</span><span class="p">,</span><span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">debugPathMapping</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">debugPathMapping</span><span class="p">)</span><span class="o">==</span><span class="mi">2</span><span class="p">:</span>
+                    <span class="n">remotePath</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">debugPathMapping</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># path on the remote debugger side</span>
+                    <span class="n">localPath</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">debugPathMapping</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># path on the local machine where the code runs</span>
+                    <span class="n">MY_PATHS_FROM_ECLIPSE_TO_PYTHON</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="p">(</span><span class="n">remotePath</span><span class="p">,</span> <span class="n">localPath</span><span class="p">),</span>
+                    <span class="p">]</span>
+                    <span class="n">setup_client_server_paths</span><span class="p">(</span><span class="n">MY_PATHS_FROM_ECLIPSE_TO_PYTHON</span><span class="p">)</span>
+                    <span class="c1">#os.environ[&quot;PATHS_FROM_ECLIPSE_TO_PYTHON&quot;]=&#39;[[&quot;%s&quot;, &quot;%s&quot;]]&#39; % (remotePath,localPath)</span>
+                    <span class="c1">#print(&quot;trying to debug with PATHS_FROM_ECLIPSE_TO_PYTHON=%s&quot; % os.environ[&quot;PATHS_FROM_ECLIPSE_TO_PYTHON&quot;]);</span>
+         
+            <span class="n">pydevd</span><span class="o">.</span><span class="n">settrace</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">debugServer</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">debugPort</span><span class="p">,</span><span class="n">stdoutToServer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stderrToServer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;command line args are: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2021, Wolfgang Fahl
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
