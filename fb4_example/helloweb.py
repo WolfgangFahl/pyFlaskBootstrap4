@@ -1,5 +1,7 @@
 '''
-Created on 2021
+Created on 2021-01-08
+
+This is a demo application for https://github.com/WolfgangFahl/pyFlaskBootstrap4
 
 @author: wf
 '''
@@ -18,7 +20,10 @@ class HelloWeb(AppWrap):
         super().__init__()
         
     def home(self):
-        html = render_template("bootstrap.html", content="Welcome to the Flask + Bootstrap4 Demo web application")
+        '''
+        render the home page of the HelloWeb application
+        '''
+        html = render_template("bootstrap.html", title="HelloWeb demo application",content="Welcome to the Flask + Bootstrap4 Demo web application",error=None)
         return html
     
 helloWeb=HelloWeb()
