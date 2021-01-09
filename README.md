@@ -10,8 +10,6 @@ Flask + Bootstrap 4 static components and templates for webprojects
 [![GitHub](https://img.shields.io/github/license/WolfgangFahl/pyFlaskBootstrap4.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![PyPI Status](https://img.shields.io/pypi/v/pyFlaskBootstrap4.svg)](https://pypi.python.org/pypi/pyFlaskBootstrap4/)
 
-[![WolfgangFahl](http://wiki.WolfgangFahl.com/images/wiki/thumb/3/38/WolfgangFahlLogoFontLessTransparent.png/198px-WolfgangFahlLogoFontLessTransparent.png)](http://www.WolfgangFahl.com)
-
 What it is
 ==========
 Flask + Bootstrap 4 static components and templates for webprojects
