@@ -1,6 +1,8 @@
 # pyFlaskBootstrap4
 Flask + Bootstrap 4 static components and templates for webprojects
 
+[![Documentation Status](https://readthedocs.org/projects/pyFlaskBootstrap4/badge/?version=latest)](https://pyFlaskBootstrap4.readthedocs.io/en/latest/?badge=latest)
+[![pypi](https://img.shields.io/pypi/pyversions/pyFlaskBootstrap4)](https://pypi.org/project/pyFlaskBootstrap4/)
 [![Travis (.org)](https://img.shields.io/travis/WolfgangFahl/pyFlaskBootstrap4.svg)](https://travis-ci.org/WolfgangFahl/pyFlaskBootstrap4)
 [![GitHub issues](https://img.shields.io/github/issues/WolfgangFahl/pyFlaskBootstrap4.svg)](https://github.com/WolfgangFahl/pyFlaskBootstrap4/issues)
 [![GitHub issues](https://img.shields.io/github/issues-closed/WolfgangFahl/pyFlaskBootstrap4.svg)](https://github.com/WolfgangFahl/pyFlaskBootstrap4/issues/?q=is%3Aissue+is%3Aclosed)
