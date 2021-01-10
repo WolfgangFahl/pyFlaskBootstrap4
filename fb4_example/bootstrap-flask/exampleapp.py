@@ -75,7 +75,6 @@ class ExampleApp(AppWrap):
         
         self.app.secret_key = 'dev'
         
-        self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
         
         # set default button sytle and size, will be overwritten by macro parameters

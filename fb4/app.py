@@ -39,6 +39,9 @@ class AppWrap:
         self.auth= HTTPBasicAuth()
         self.baseUrl=""
         self.bootstrap = Bootstrap(self.app)
+        # should be configurable again
+        self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+ 
         
     @staticmethod
     def splitPath(path:str):

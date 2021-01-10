@@ -3,9 +3,11 @@
 Bootstrap-Flask
 # https://pypi.org/project/Flask-HTTPAuth/
 Flask-HTTPAuth
-#
+# https://pypi.org/project/Flask-SQLAlchemy/
 Flask-SQLAlchemy
-#
+# https://pypi.org/project/SQLAlchemy-Utils/
+SQLAlchemy-Utils
+# https://pypi.org/project/Flask-WTF/
 Flask-WTF
 # requests (for forwarding)
 # https://pypi.org/project/requests/
