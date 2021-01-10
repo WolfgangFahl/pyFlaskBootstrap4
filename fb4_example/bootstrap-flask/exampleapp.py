@@ -106,7 +106,7 @@ class ExampleApp(AppWrap):
             )
             if i % 4:
                 m.draft = True
-        self.db.session.add(m)
+            self.db.session.add(m)
         self.db.session.commit()
         
     def flash(self):
