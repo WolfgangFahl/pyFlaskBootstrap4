@@ -10,6 +10,7 @@ import os
 import sys
 from flask_httpauth import HTTPBasicAuth
 from pydevd_file_utils import setup_client_server_paths
+from flask_bootstrap import Bootstrap
 
 class AppWrap:
     ''' 
@@ -37,6 +38,7 @@ class AppWrap:
         self.app.jinja_env.globals.update(isinstance=isinstance)
         self.auth= HTTPBasicAuth()
         self.baseUrl=""
+        self.bootstrap = Bootstrap(self.app)
         
     @staticmethod
     def splitPath(path:str):

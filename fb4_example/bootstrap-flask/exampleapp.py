@@ -8,7 +8,6 @@ from wtforms import StringField, SubmitField, BooleanField, PasswordField, Integ
 from wtforms.validators import DataRequired, Length
 from wtforms.fields import *
 
-from flask_bootstrap import Bootstrap
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -84,7 +83,6 @@ class ExampleApp(AppWrap):
         self.app.config['BOOTSTRAP_BTN_SIZE'] = 'sm'
         # app.config['BOOTSTRAP_BOOTSWATCH_THEME'] = 'lumen'  # uncomment this line to test bootswatch theme
 
-        self.bootstrap = Bootstrap(self.app)
         self.db = SQLAlchemy(self.app)
         self.csrf = CSRFProtect(self.app)
         
