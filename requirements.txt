@@ -1,11 +1,11 @@
 # web server
-# https://pypi.org/project/Flask/
-Flask
+# https://pypi.org/project/Bootstrap-Flask/
+Bootstrap-Flask
+Flask-SQLAlchemy
+Flask-WTF
 # requests (for forwarding)
 # https://pypi.org/project/requests/
 requests
 # basic auth
-# https://pypi.org/project/Flask-HTTPAuth/
-Flask-HTTPAuth
 #https://pypi.org/project/pydevd/
 pydevd
