@@ -120,16 +120,40 @@ class ExampleApp(AppWrap):
         flash('A simple light alert—check it out!', 'light')
         flash('A simple dark alert—check it out!', 'dark')
         flash(Markup('A simple success alert with <a href="#" class="alert-link">an example link</a>. Give it a click if you like.'), 'success')
-        return render_template('flash.html')
-        
-        
-    def home(self):
-        return render_template('index.html')
+        return render_template('flash.html')       
     
     def form(self):
         form = HelloForm()
         return render_template('form.html', form=form, telephone_form=TelephoneForm(), contact_form=ContactForm(), im_form=IMForm(), button_form=ButtonForm(), example_form=ExampleForm())
     
+    def home(self):
+        return render_template('index.html')
+    
+    def icon(self):
+        return render_template('icon.html')
+
+    def messag_delete(self,message_id):    
+        message = Message.query.get(message_id)
+        if message:
+            db.session.delete(message)
+            db.session.commit()
+            return f'Message {message_id} has been deleted. Return to <a href="/table">table</a>.'
+        return f'Message {message_id} did not exist and could therefore not be deleted. Return to <a href="/table">table</a>.'
+ 
+    def message_edit(self,message_id):
+        message = Message.query.get(message_id)
+        if message:
+            message.draft = not message.draft
+            db.session.commit()
+            return f'Message {message_id} has been edited by toggling draft status. Return to <a href="/table">table</a>.'
+        return f'Message {message_id} did not exist and could therefore not be edited. Return to <a href="/table">table</a>.'
+
+    def message_view(self,message_id):   
+        message = Message.query.get(message_id)
+        if message:
+            return f'Viewing {message_id} with text "{message.text}". Return to <a href="/table">table</a>.'
+        return f'Could not view message {message_id} as it does not exist. Return to <a href="/table">table</a>.'
+
     def nav(self):
         return render_template('nav.html')
   
@@ -146,6 +170,9 @@ class ExampleApp(AppWrap):
         messages = pagination.items
         return render_template('pagination.html', pagination=pagination, messages=messages)
 
+    def static(self):
+        return render_template('static.html')
+    
     def table(self):
         page = request.args.get('page', 1, type=int)
         pagination = Message.query.paginate(page, per_page=10)
@@ -153,13 +180,13 @@ class ExampleApp(AppWrap):
         titles = [('id', '#'), ('text', 'Message'), ('author', 'Author'), ('category', 'Category'), ('draft', 'Draft'), ('create_time', 'Create Time')]
         return render_template('table.html', messages=messages, titles=titles)
 
-    def static(self):
-        return render_template('static.html')
-
+# initialization of flask globals
+# we can't help that these are needed and can't be wrapped
 ea=ExampleApp()
 app=ea.app 
 db=ea.db
 
+# since db.Model needs to be global the Message class is defined here
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text, nullable=False)
@@ -168,6 +195,9 @@ class Message(db.Model):
     draft = db.Column(db.Boolean, default=False, nullable=False)
     create_time = db.Column(db.Integer, nullable=False, unique=True)
 
+#
+# setup the RESTFUL routes for this application
+#
 
 @app.route('/')
 def index():
@@ -203,39 +233,27 @@ def test_table():
 
 @app.route('/table/<message_id>/view')
 def view_message(message_id):
-    message = Message.query.get(message_id)
-    if message:
-        return f'Viewing {message_id} with text "{message.text}". Return to <a href="/table">table</a>.'
-    return f'Could not view message {message_id} as it does not exist. Return to <a href="/table">table</a>.'
-
+    return ea.message_view(message_id)
 
 @app.route('/table/<message_id>/edit')
 def edit_message(message_id):
-    message = Message.query.get(message_id)
-    if message:
-        message.draft = not message.draft
-        db.session.commit()
-        return f'Message {message_id} has been editted by toggling draft status. Return to <a href="/table">table</a>.'
-    return f'Message {message_id} did not exist and could therefore not be edited. Return to <a href="/table">table</a>.'
-
-
+    return ea.message_edit(message_id)
+  
 @app.route('/table/<message_id>/delete', methods=['POST'])
 def delete_message(message_id):
-    message = Message.query.get(message_id)
-    if message:
-        db.session.delete(message)
-        db.session.commit()
-        return f'Message {message_id} has been deleted. Return to <a href="/table">table</a>.'
-    return f'Message {message_id} did not exist and could therefore not be deleted. Return to <a href="/table">table</a>.'
-
+    return ea.message_delte(message_id)
 
 @app.route('/icon')
 def test_icon():
-    return render_template('icon.html')
+    return ea.icon()
 
+#
+#  Command line entry point
+#
 if __name__ == '__main__':
     parser=ea.getParser("Flask + Bootstrap4 demo application for bootstrap-flask")
     args=parser.parse_args()
+    # allow remote debugging if specified so on command line
     ea.optionalDebug(args)
     ea.run(args)
  
