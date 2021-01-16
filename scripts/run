@@ -127,7 +127,7 @@ startServer() {
   color_msg $green "log is at $l_logdir/$l_logfile"
 }
 
-pyapp=frontend/webserver.py
+pyapp=fb4_example/bootstrap-flask/exampleapp.py
 killifrunning $pyapp
 port=8234
 debugServer=""
@@ -179,7 +179,7 @@ do
       shift
       ;;
     -s)
-      startServer "$sites" "$baseUrl" "$debugServer" "$debugPort" "$remotePath" "$localPath"
+      startServer "$baseUrl" "$debugServer" "$debugPort" "$remotePath" "$localPath"
       exit 0
       ;;
     *)
