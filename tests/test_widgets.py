@@ -26,12 +26,12 @@ class TestWidgets(unittest.TestCase):
         test widget handling
         '''
         widgets=[
-            Link("http://www.bitplan.com","BITPlan webPage"),
+            Link("http://www.bitplan.com","BITPlan webPage",tooltip="BITPlan GmbH"),
             Image("http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png",alt='BITPlan Logo'),
             MenuItem("http://test.bitplan.com","BITPlan testSite",True)
         ]
         expectedHtml=[
-            "<a href='http://www.bitplan.com'>BITPlan webPage</a>",
+            "<a href='http://www.bitplan.com' title='BITPlan GmbH'>BITPlan webPage</a>",
             "<img src='http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png' alt='BITPlan Logo'/>",
             """<li class="nav-item active">
   <a class="nav-link" href="http://test.bitplan.com">BITPlan testSite</a>
@@ -54,7 +54,7 @@ class TestWidgets(unittest.TestCase):
         values=[
             "text",
             8,
-            Link("http://www.bitplan.com","BITPlan home page")
+            Link("http://www.bitplan.com","BITPlan home page",tooltip="BITPlan")
             ]
         expected=[
             "str","int","Link"]
