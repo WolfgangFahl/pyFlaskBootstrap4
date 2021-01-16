@@ -36,12 +36,11 @@ error() {
 # show the usage
 #
 usage() {
-  echo "usage: $0 [-b|--baseUrl <baseUrl>][-d <debugServer>] [-dp <remotePath> <localPath>] [--sites <sites>] [-s] [-h] "
+  echo "usage: $0 [-b|--baseUrl <baseUrl>][-d <debugServer>] [-dp <remotePath> <localPath>] [-s] [-h] "
   echo "  -h: show this usage"
   echo "  -b: set a baseUrl for the WikiCMS server (in case relative URLs won't work ...)"
   echo "  -d: allow remote debugging with the given debugServer"
   echo "  -dp: allow remote debugging with the given debugPath mapping from remotePath to localPath"
-  echo "  --sites: the sites to enable"
   echo "  -s: start as server only"
 }
 export PYTHONPATH=""
@@ -94,14 +93,13 @@ killifrunning() {
 # start the server
 #
 startServer() {
-  local l_logdir=/var/log/wikicms
-  local l_logfile=wikicms.log
-  local l_sites="$1"
-  local l_baseUrl="$2"
-  local l_debugServer="$3"
-  local l_debugPort="$4"
-  local l_remotePath="$5"
-  local l_localPath="$6"
+  local l_logdir=/var/log/pyFlaskBootstrap4
+  local l_logfile=pyFlaskBootstrap4.log
+  local l_baseUrl="$1"
+  local l_debugServer="$2"
+  local l_debugPort="$3"
+  local l_remotePath="$4"
+  local l_localPath="$5"
   color_msg $blue "starting server only"
   if [ ! -d $l_logdir ]
   then
@@ -124,10 +122,6 @@ startServer() {
   then 
     poptions="$poptions --baseUrl $l_baseUrl"
   fi
-  if [ "$l_sites" != "" ]
-  then 
-    poptions="$poptions --sites $l_sites"
-  fi
   echo "setting python options to $poptions"
   nohup python3 $pyapp $poptions > $l_logdir/$l_logfile 2>&1 &
   color_msg $green "log is at $l_logdir/$l_logfile"
@@ -135,7 +129,7 @@ startServer() {
 
 pyapp=frontend/webserver.py
 killifrunning $pyapp
-port=8250
+port=8234
 debugServer=""
 debugPort=5678
 remotePath=""
