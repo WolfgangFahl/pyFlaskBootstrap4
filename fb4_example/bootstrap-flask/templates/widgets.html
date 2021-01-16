@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Widgets</h1>
+<!-- widgets -->
+<ul>
+    {% for widget in widgetList %}
+    <li>{{widget.__class__.__name__}}: {{ widget|safe }}
+    {% endfor %}
+</ul>
+{% endblock %}

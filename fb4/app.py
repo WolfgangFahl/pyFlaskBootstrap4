@@ -41,7 +41,9 @@ class AppWrap:
         self.bootstrap = Bootstrap(self.app)
         # should be configurable again
         self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
- 
+        # set default bootstrap button style and size
+        self.app.config['BOOTSTRAP_BTN_STYLE'] = 'primary'
+        self.app.config['BOOTSTRAP_BTN_SIZE'] = 'sm'
         
     @staticmethod
     def splitPath(path:str):

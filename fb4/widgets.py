@@ -3,6 +3,7 @@ Created on 2021-01-04
 
 @author: wf
 '''
+from flask import render_template_string
 
 class Widget(object):
     '''
@@ -35,7 +36,7 @@ class Link(Widget):
         self.tooltip=tooltip
         
     def render(self):
-        html="%s<a href='%s'>%s</a>" % (self.indent,self.url,self.title)
+        html="%s<a href='%s' title='%s'>%s</a>" % (self.indent,self.url,self.tooltip,self.title)
         return html
         
 class Image(Widget):
@@ -71,6 +72,34 @@ class Image(Widget):
         
         html="%s<img src='%s' alt='%s'%s%s/>" % (self.indent,self.url,self.alt,width,height)
         return html
+    
+class Icon(Widget):
+    ''' 
+    an Icon
+    '''
+    
+    def __init__(self,name:str,size:int=32,iconType:str='bootstrap'):
+        '''
+        constructor
+        '''
+        self.name=name
+        self.size=size
+        self.iconType=iconType
+        pass
+    
+    def render(self)->str:
+        '''
+        render me as html
+        
+        Returns:
+            str: html code for Icon
+        '''
+        # https://icons.getbootstrap.com/icons/ is the default
+        template="""
+{%% from 'bootstrap/utils.html' import render_icon %%}        
+{{ render_icon('%s', %d) }}""" % (self.name,self.size)
+        html=render_template_string(template)
+        return html    
     
 class MenuItem(Widget):
     '''

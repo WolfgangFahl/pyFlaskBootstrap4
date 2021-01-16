@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from fb4.app import AppWrap
+from fb4.widgets import Link, Icon,Image
 from flask import Flask, render_template, request, flash, Markup, jsonify
 
 from flask_wtf import FlaskForm, CSRFProtect
@@ -77,7 +78,7 @@ class ExampleApp(AppWrap):
         
         self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
         
-        # set default button sytle and size, will be overwritten by macro parameters
+        # set default button style and size, will be overwritten by macro parameters
         self.app.config['BOOTSTRAP_BTN_STYLE'] = 'primary'
         self.app.config['BOOTSTRAP_BTN_SIZE'] = 'sm'
         # app.config['BOOTSTRAP_BOOTSWATCH_THEME'] = 'lumen'  # uncomment this line to test bootswatch theme
@@ -177,6 +178,14 @@ class ExampleApp(AppWrap):
         titles = [('id', '#'), ('text', 'Message'), ('author', 'Author'), ('category', 'Category'), ('draft', 'Draft'), ('create_time', 'Create Time')]
         return render_template('table.html', messages=messages, titles=titles)
 
+    def widgets(self):
+        widgetList=[
+            Link("https://github.com/WolfgangFahl/pyFlaskBootstrap4","pyFlaskBootstrap4","Extended Flask + Bootstrap4 Library"),
+            Image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/299px-Tux.svg.png",alt="Tux",width=100),
+            Icon("github")
+        ]
+        return render_template('widgets.html',widgetList=widgetList)
+    
 # initialization of flask globals
 # we can't help that these are needed and can't be wrapped
 ea=ExampleApp()
@@ -243,6 +252,11 @@ def delete_message(message_id):
 @app.route('/icon')
 def test_icon():
     return ea.icon()
+
+@app.route('/widgets')
+def test_widgets():
+    return ea.widgets()
+
 
 #
 #  Command line entry point

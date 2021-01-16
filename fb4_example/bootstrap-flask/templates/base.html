@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Bootstrap-Flask Demo Application</title>
+    <title>pyFlaskBootstrap4 Demo Application</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
     {{ bootstrap.load_css() }}
 </head>
@@ -25,8 +25,10 @@
                 {{ render_nav_item('test_flash', 'Flash Messages', use_li=True) }}
                 {{ render_nav_item('test_table', 'Table', use_li=True) }}
                 {{ render_nav_item('test_icon', 'Icon', use_li=True) }}
+                {{ render_nav_item('test_widgets', 'Widgets', use_li=True) }}
                 <li class="nav-item"><a class="nav-link" href="https://bootstrap-flask.readthedocs.io/" target="_blank">Documentation</a></li>
                 <li class="nav-item"><a class="nav-link" href="https://github.com/greyli/bootstrap-flask" target="_blank">GitHub</a></li>
+                <li class="nav-item"><a class="nav-link" href="https://github.com/WolfgangFahl/pyFlaskBootstrap4" target="_blank">GitHub Extended</a></li>
             </ul>
         </div>
     </nav>
@@ -38,7 +40,7 @@
 
     <footer class="text-center">
         {% block footer %}
-            <small> &copy; 2018–<script>document.write(new Date().getFullYear())</script> <a href="http://greyli.com" title="Written by Grey Li">Grey Li</a>
+            <small> &copy; 2018–<script>document.write(new Date().getFullYear())</script> <a href="http://greyli.com" title="Written by Grey Li">Grey Li</a> → <a href="http://www.bitplan.com/Wolfgang_Fahl" title="Extended by Wolfgang Fahl">Wolfgang Fahl</a>
             </small>
         {% endblock %}
     </footer>
