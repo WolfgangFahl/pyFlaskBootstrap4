@@ -86,15 +86,22 @@ class ExampleApp(AppWrap):
         self.db = SQLAlchemy(self.app)
         self.csrf = CSRFProtect(self.app)
         
-    def initMessages(self,limit=20):
+    def initDB(self,limit=20):
         '''
-        create an initial set of message with the given limit
-        
-        Args:
-            limit(int): the number of messages to create
+        initialize the database
         '''
         self.db.drop_all()
         self.db.create_all()
+        self.initMessages(limit)
+        self.initIcons()
+        
+    def initMessages(self,limit=20):
+        '''
+        create an initial set of message with the given limit
+        Args:
+            limit(int): the number of messages to create
+        '''
+        
         for i in range(limit):
             m = Message(
                 text='Test message {}'.format(i+1),
@@ -105,6 +112,16 @@ class ExampleApp(AppWrap):
             if i % 4:
                 m.draft = True
             self.db.session.add(m)
+        self.db.session.commit()
+        
+    def initIcons(self):
+        '''
+        initialize the icons
+        '''
+        iconNames=Icon.getBootstrapIconsNames()
+        for index,iconName in enumerate(iconNames):
+            bootstrapIcon=BootstrapIcon(id=iconName,index=index+1)
+            self.db.session.add(bootstrapIcon)
         self.db.session.commit()
         
     def flash(self):
@@ -162,16 +179,27 @@ class ExampleApp(AppWrap):
         Returns:
             rendered html for pagination
         '''
-        self.initMessages(100)
+        self.initDB(2000)
         page = request.args.get('page', 1, type=int)
-        pagination = Message.query.paginate(page, per_page=10)
-        messages = pagination.items
-        return render_template('pagination.html', pagination=pagination, messages=messages)
+        pagination = BootstrapIcon.query.paginate(page, per_page=20)
+        icons = pagination.items
+        displayIcons=[]
+        for i,icon in enumerate(icons):
+            displayIcon=Icon(icon.id)
+            displayIcon.userdata['#']=icon.index
+            displayIcons.append(displayIcon)
+        return render_template('pagination.html', pagination=pagination, icons=displayIcons)
 
     def static(self):
+        '''
+        test static content
+        '''
         return render_template('static.html')
     
     def table(self):
+        '''
+        test table
+        '''
         page = request.args.get('page', 1, type=int)
         pagination = Message.query.paginate(page, per_page=10)
         messages = pagination.items
@@ -218,6 +246,15 @@ class Message(db.Model):
     category = db.Column(db.String(100), nullable=False)
     draft = db.Column(db.Boolean, default=False, nullable=False)
     create_time = db.Column(db.Integer, nullable=False, unique=True)
+    
+# wget https://raw.githubusercontent.com/twbs/icons/main/bootstrap-icons.svg    
+# xq .svg bootstrap-icons.svg | grep -v http | sed 's/@//' | jq .symbol[].id | cut -d'"' -f2  | awk ' { if ( length > x ) { x = length; y = $0 } }END{ print y; print x }'
+# file-earmark-spreadsheet-fill
+# 29
+class BootstrapIcon(db.Model):
+    id=db.Column(db.String(30), primary_key=True)
+    index=db.Column(db.Integer)
+    
 
 #
 # setup the RESTFUL routes for this application
@@ -249,7 +286,7 @@ def test_flash():
 
 @app.before_first_request
 def before_first_request_func():
-    ea.initMessages()
+    ea.initDB()
 
 @app.route('/table')
 def test_table():

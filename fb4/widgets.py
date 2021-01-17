@@ -4,13 +4,20 @@ Created on 2021-01-04
 @author: wf
 '''
 from flask import render_template_string
+import os
+import site
+from xml.dom import minidom
 
 class Widget(object):
     '''
     a HTML widget
     '''
-    def __init__(self,indent=""):
+    def __init__(self,indent="",userdata=None):
         self.indent=indent
+        if userdata is None:
+            self.userdata={}
+        else:
+            self.userdata=userdata
         pass
     
     def __str__(self):
@@ -82,15 +89,38 @@ class Icon(Widget):
     an Icon
     '''
     
-    def __init__(self,name:str,size='32',color:str='primary',iconType:str='bootstrap'):
+    def __init__(self,name:str,size='32',color:str='primary',iconType:str='bootstrap',indent=''):
         '''
         constructor
         '''
+        super().__init__(indent=indent)
         self.name=name
         self.size=str(size)
         self.color=color
         self.iconType=iconType
         pass
+    
+    @staticmethod
+    def getBootstrapIconsFile():
+        proots=[site.getusersitepackages()]
+        proots.extend(site.getsitepackages())
+        iconsFile=None
+        for proot in proots:
+            iconsFile="%s/flask_bootstrap/static/icons/bootstrap-icons.svg" % proot
+            if os.path.isfile(iconsFile):
+                break
+        return iconsFile
+    
+    @staticmethod
+    def getBootstrapIconsNames():
+        names=[]
+        iconsFile=Icon.getBootstrapIconsFile()
+        if iconsFile is not None:
+            iconsDoc=minidom.parse(iconsFile)
+            names=[path.getAttribute('id') for path
+                in iconsDoc.getElementsByTagName('symbol')]
+        return names
+    
     
     def render(self)->str:
         '''
