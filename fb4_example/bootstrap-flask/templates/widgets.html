@@ -3,8 +3,11 @@
 <h1>Widgets</h1>
 <!-- widgets -->
 <ul>
-    {% for widget in widgetList %}
-    <li>{{widget.__class__.__name__}}: {{ widget|safe }}
+    {% for widgets in widgetList %}
+    <li>{{widgets[0].__class__.__name__}}: 
+    {% for widget in widgets %}
+    	{{ widget|safe }}
+    {% endfor %}
     {% endfor %}
 </ul>
 {% endblock %}

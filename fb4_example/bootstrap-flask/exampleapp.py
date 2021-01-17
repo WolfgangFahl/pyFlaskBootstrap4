@@ -179,10 +179,28 @@ class ExampleApp(AppWrap):
         return render_template('table.html', messages=messages, titles=titles)
 
     def widgets(self):
+        '''
+        test widgets 
+        '''
         widgetList=[
-            Link("https://github.com/WolfgangFahl/pyFlaskBootstrap4","pyFlaskBootstrap4","Extended Flask + Bootstrap4 Library"),
-            Image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/299px-Tux.svg.png",alt="Tux",width=100),
-            Icon("github")
+            [
+                Link("https://github.com/WolfgangFahl/pyFlaskBootstrap4","pyFlaskBootstrap4","Extended Flask + Bootstrap4 Library"),
+                Link("http://wiki.bitplan.com/index.php/PyFlaskBootstrap4","Wiki","pyFlaskBootstrap4 wiki"),
+                Link("https://github.com/greyli/bootstrap-flask","bootstrap-flask","Flask + Bootstrap4 Library by Grey Li"),
+                Link("https://palletsprojects.com/p/flask/","flask","web application framework"),
+                Link("https://getbootstrap.com/","bootstrap","Open source web toolkit")
+            ],
+            [
+                Image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/299px-Tux.svg.png",alt="Tux",height=150,title='Tux - the Linux kernel penguin mascot'),
+                Image("https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Eiffel_Tower_Paris.jpg/180px-Eiffel_Tower_Paris.jpg",alt="Eiffel Tower",height=150,title='Eiffel Tower, Paris'),
+                Image("https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Croce-Mozart-Detail.jpg/185px-Croce-Mozart-Detail.jpg",alt="Mozart",height=150,title='Wolfgang Amadeus Mozart'),
+                Image("https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/The_Blue_Marble.jpg/240px-The_Blue_Marble.jpg",alt="Earth",width=150,title='Earth as seen from Apollo 17 mission')
+            ],    
+            [
+                Icon("award"),Icon("battery"),Icon("book"),Icon("heart"),
+                Icon("calculator",size=48),Icon("person",size=48,color='red'),
+                Icon("wifi",size=64),Icon("wrench",size=64)
+            ]    
         ]
         return render_template('widgets.html',widgetList=widgetList)
     

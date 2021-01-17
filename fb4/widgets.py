@@ -43,13 +43,16 @@ class Image(Widget):
     '''
     a HTML Image
     '''
-    def __init__(self,url,alt=None,width=None,height=None,indent=""):
+    def __init__(self,url,alt=None,title=None,width=None,height=None,indent=""):
         '''
         constructor
         
         Args:
             url(str):  the link 
             alt(str):  alternative image representation (if any)
+            title(str): title/tooltip (if any)
+            width: width of the image (if any)
+            height: height of the image (if any)
         '''
         super().__init__(indent=indent)
         self.url=url
@@ -57,6 +60,7 @@ class Image(Widget):
             self.alt=alt
         else:
             self.alt=url
+        self.title=title
         self.width=width
         self.height=height
         
@@ -69,8 +73,8 @@ class Image(Widget):
         '''
         width=" width='%d'" % self.width if self.width is not None else ""
         height=" height='%d'" % self.height if self.height is not None else ""
-        
-        html="%s<img src='%s' alt='%s'%s%s/>" % (self.indent,self.url,self.alt,width,height)
+        title=" title='%s'" % self.title if self.title is not None else ""
+        html="%s<img src='%s' alt='%s'%s%s%s/>" % (self.indent,self.url,self.alt,title,width,height)
         return html
     
 class Icon(Widget):
@@ -78,12 +82,13 @@ class Icon(Widget):
     an Icon
     '''
     
-    def __init__(self,name:str,size:int=32,iconType:str='bootstrap'):
+    def __init__(self,name:str,size='32',color:str='primary',iconType:str='bootstrap'):
         '''
         constructor
         '''
         self.name=name
-        self.size=size
+        self.size=str(size)
+        self.color=color
         self.iconType=iconType
         pass
     
@@ -97,7 +102,7 @@ class Icon(Widget):
         # https://icons.getbootstrap.com/icons/ is the default
         template="""
 {%% from 'bootstrap/utils.html' import render_icon %%}        
-{{ render_icon('%s', %d) }}""" % (self.name,self.size)
+{{ render_icon('%s', %s,'%s') }}""" % (self.name,self.size,self.color)
         html=render_template_string(template)
         return html    
     
