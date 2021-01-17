@@ -5,6 +5,7 @@ Created on 2021-01-17
 '''
 import unittest
 from fb4.widgets import Icon
+import sys
 
 class TestIcons(unittest.TestCase):
 
@@ -21,11 +22,12 @@ class TestIcons(unittest.TestCase):
         '''
         test getting the bootstrap Icons File
         '''
-        iconsFile=Icon.getBootstrapIconsFile()
-        self.assertTrue(iconsFile is not None)
-        iconNames=Icon.getBootstrapIconsNames()
-        self.assertTrue(len(iconNames)>1000)
-        pass
+        if sys.version_info >= (3, 9):
+            iconsFile=Icon.getBootstrapIconsFile()
+            self.assertTrue(iconsFile is not None)
+            iconNames=Icon.getBootstrapIconsNames()
+            self.assertTrue(len(iconNames)>1000)
+            pass
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ Created on 2021-01-04
 from flask import render_template_string
 import os
 import site
+import sys
 from xml.dom import minidom
 
 class Widget(object):
@@ -102,7 +103,11 @@ class Icon(Widget):
     
     @staticmethod
     def getBootstrapIconsFile():
-        proots=[site.getusersitepackages()]
+        if sys.version_info >= (3, 9):
+            # work around https://github.com/pypa/virtualenv/issues/804
+            proots=[site.getusersitepackages()]
+        else:
+            proots=[]
         proots.extend(site.getsitepackages())
         iconsFile=None
         for proot in proots:
