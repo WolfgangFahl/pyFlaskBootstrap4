@@ -29,7 +29,11 @@
                 <li class="nav-item"><a class="nav-link" href="https://bootstrap-flask.readthedocs.io/" target="_blank">Documentation</a></li>
                 <li class="nav-item"><a class="nav-link" href="https://github.com/greyli/bootstrap-flask" target="_blank">GitHub</a></li>
                 <li class="nav-item"><a class="nav-link" href="https://github.com/WolfgangFahl/pyFlaskBootstrap4" target="_blank">GitHub Extended</a></li>
+                {% if current_user.is_anonymous %}
                 {{ render_nav_item('login', 'Login', use_li=True) }}
+                {% else %}
+                {{ render_nav_item('logout', 'Logout', use_li=True) }}
+                {% endif %}
             </ul>
         </div>
     </nav>

@@ -9,7 +9,7 @@ from wtforms import StringField, SubmitField, BooleanField, PasswordField, Integ
 from wtforms.validators import DataRequired, Length
 from wtforms.fields import *
 from flask_login import LoginManager,UserMixin
-from flask_login import current_user, login_user
+from flask_login import current_user, login_user,logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 import os
@@ -171,10 +171,15 @@ class ExampleApp(AppWrap):
             user = User.query.filter_by(username=form.username.data).first()
             if user is None or not user.checkPassword(form.password.data):
                 flash('Invalid username or password')
+                flash('try user: scott, password: tiger2021')
                 return redirect(url_for('login'))
             login_user(user, remember=form.rememberMe.data)
             return redirect(url_for('index'))
         return render_template('login.html', form=form)
+    
+    def logOut(self):
+        logout_user()
+        return redirect(url_for('index'))
 
     def messag_delete(self,message_id):    
         message = Message.query.get(message_id)
@@ -328,6 +333,10 @@ def test_form():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     return ea.loginForm()
+
+@app.route('/logout')
+def logout():
+    return ea.logOut()
 
 @app.route('/nav', methods=['GET', 'POST'])
 def test_nav():

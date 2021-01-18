@@ -22,7 +22,7 @@
     {{ form.csrf_token }}
     {{ render_field(form.username) }}
     {{ render_field(form.password) }}
-    {{ render_field(form.remember) }}
+    {{ render_field(form.rememberMe) }}
     {{ render_field(form.submit) }}
     </form>
 
@@ -33,7 +33,7 @@
     {{ render_form_row([form.username, form.password], col_map={'username': 'col-md-6', 'password': 'col-md-4'}) }}
     {{ render_form_row([form.username, form.password], col_map={'username': 'col-md-2', 'password': 'col-md-8'}) }}
     {{ render_form_row([form.username, form.password], col_class_default='col-md-2') }}
-    {{ render_form_row([form.remember]) }}
+    {{ render_form_row([form.rememberMe]) }}
     {{ render_form_row([form.submit]) }}
     </form>
 
