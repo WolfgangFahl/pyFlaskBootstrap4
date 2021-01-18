@@ -114,10 +114,18 @@ class Icon(Widget):
             iconsFile="%s/flask_bootstrap/static/icons/bootstrap-icons.svg" % proot
             if os.path.isfile(iconsFile):
                 break
+            else:
+                iconsFile=None
         return iconsFile
     
     @staticmethod
     def getBootstrapIconsNames():
+        '''
+        get the bootstrap icon names
+        
+        Returns:
+            list: a list of string with the icon names
+        '''
         names=[]
         iconsFile=Icon.getBootstrapIconsFile()
         if iconsFile is not None:
