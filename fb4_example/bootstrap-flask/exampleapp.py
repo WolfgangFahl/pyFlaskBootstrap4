@@ -8,7 +8,8 @@ from wtforms import StringField, SubmitField, BooleanField, PasswordField, Integ
     FormField, SelectField, FieldList
 from wtforms.validators import DataRequired, Length
 from wtforms.fields import *
-
+from flask_login import LoginManager,UserMixin
+from flask_login import current_user, login_user
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -27,11 +28,14 @@ class ExampleForm(FlaskForm):
     submit = SubmitField()
 
 
-class HelloForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(1, 20)])
+class LoginForm(FlaskForm):
+    '''
+    a form with username/password
+    '''
+    username = StringField('Username', validators=[DataRequired(), Length(1, 50)])
     password = PasswordField('Password', validators=[DataRequired(), Length(8, 150)])
     remember = BooleanField('Remember me')
-    submit = SubmitField()
+    submit = SubmitField('Login')
 
 
 class ButtonForm(FlaskForm):
@@ -85,6 +89,7 @@ class ExampleApp(AppWrap):
 
         self.db = SQLAlchemy(self.app)
         self.csrf = CSRFProtect(self.app)
+        self.login = LoginManager(self.app)
         
     def initDB(self,limit=20):
         '''
@@ -138,7 +143,7 @@ class ExampleApp(AppWrap):
         return render_template('flash.html')       
     
     def form(self):
-        form = HelloForm()
+        form = LoginForm()
         return render_template('form.html', form=form, telephone_form=TelephoneForm(), contact_form=ContactForm(), im_form=IMForm(), button_form=ButtonForm(), example_form=ExampleForm())
     
     def home(self):
@@ -146,6 +151,22 @@ class ExampleApp(AppWrap):
     
     def icon(self):
         return render_template('icon.html')
+    
+    def loginForm(self):
+        '''
+        show the login form
+        '''
+        form = LoginForm()
+        if current_user.is_authenticated:
+            return redirect(url_for('index'))
+        if form.validate_on_submit():
+            user = User.query.filter_by(username=form.username.data).first()
+            if user is None or not user.check_password(form.password.data):
+                flash('Invalid username or password')
+                return redirect(url_for('login'))
+            login_user(user, remember=form.remember_me.data)
+            return redirect(url_for('index'))
+        return render_template('login.html', form=form)
 
     def messag_delete(self,message_id):    
         message = Message.query.get(message_id)
@@ -237,6 +258,12 @@ class ExampleApp(AppWrap):
 ea=ExampleApp()
 app=ea.app 
 db=ea.db
+login=ea.login
+
+# User handling
+class User(UserMixin, db.Model):
+    userid=db.Column(db.String(50), primary_key=True)
+    pass
 
 # since db.Model needs to be global the Message class is defined here
 class Message(db.Model):
@@ -257,9 +284,19 @@ class BootstrapIcon(db.Model):
     
 
 #
+# setup global handlers
+#
+@app.before_first_request
+def before_first_request_func():
+    ea.initDB()
+    
+@login.user_loader
+def load_user(userid):
+    return User.query.get(userid)
+
+#
 # setup the RESTFUL routes for this application
 #
-
 @app.route('/')
 def index():
     return ea.home()
@@ -267,6 +304,10 @@ def index():
 @app.route('/form', methods=['GET', 'POST'])
 def test_form():
     return ea.form()
+
+@app.route('/login', methods=['GET', 'POST'])
+def test_login():
+    return ea.loginForm()
 
 @app.route('/nav', methods=['GET', 'POST'])
 def test_nav():
@@ -283,10 +324,6 @@ def test_static():
 @app.route('/flash', methods=['GET', 'POST'])
 def test_flash():
     return ea.flash()
-
-@app.before_first_request
-def before_first_request_func():
-    ea.initDB()
 
 @app.route('/table')
 def test_table():
