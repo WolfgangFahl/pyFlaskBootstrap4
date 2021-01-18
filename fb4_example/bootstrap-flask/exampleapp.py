@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from fb4.app import AppWrap
 from fb4.widgets import Link, Icon,Image
-from flask import Flask, render_template, request, flash, Markup, jsonify
+from flask import Flask, redirect,render_template, request, flash, Markup, jsonify, url_for
 
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, SubmitField, BooleanField, PasswordField, IntegerField, TextField,\
@@ -10,6 +10,7 @@ from wtforms.validators import DataRequired, Length
 from wtforms.fields import *
 from flask_login import LoginManager,UserMixin
 from flask_login import current_user, login_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -34,7 +35,7 @@ class LoginForm(FlaskForm):
     '''
     username = StringField('Username', validators=[DataRequired(), Length(1, 50)])
     password = PasswordField('Password', validators=[DataRequired(), Length(8, 150)])
-    remember = BooleanField('Remember me')
+    rememberMe = BooleanField('Remember me')
     submit = SubmitField('Login')
 
 
@@ -97,8 +98,15 @@ class ExampleApp(AppWrap):
         '''
         self.db.drop_all()
         self.db.create_all()
+        self.initUsers()
         self.initMessages(limit)
         self.initIcons()
+        
+    def initUsers(self):
+        u=User(id=1,username="scott")
+        u.setPassword("tiger2021")
+        self.db.session.add(u)
+        self.db.session.commit()
         
     def initMessages(self,limit=20):
         '''
@@ -161,10 +169,10 @@ class ExampleApp(AppWrap):
             return redirect(url_for('index'))
         if form.validate_on_submit():
             user = User.query.filter_by(username=form.username.data).first()
-            if user is None or not user.check_password(form.password.data):
+            if user is None or not user.checkPassword(form.password.data):
                 flash('Invalid username or password')
                 return redirect(url_for('login'))
-            login_user(user, remember=form.remember_me.data)
+            login_user(user, remember=form.rememberMe.data)
             return redirect(url_for('index'))
         return render_template('login.html', form=form)
 
@@ -262,8 +270,20 @@ login=ea.login
 
 # User handling
 class User(UserMixin, db.Model):
-    userid=db.Column(db.String(50), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), index=True, unique=True)
+    email = db.Column(db.String(120), index=True, unique=True)
+    password_hash = db.Column(db.String(128))
     pass
+
+    def setPassword(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def checkPassword(self, password):
+        return check_password_hash(self.password_hash, password)
+
+def __repr__(self):
+    return '<User {}>'.format(self.username)
 
 # since db.Model needs to be global the Message class is defined here
 class Message(db.Model):
@@ -306,7 +326,7 @@ def test_form():
     return ea.form()
 
 @app.route('/login', methods=['GET', 'POST'])
-def test_login():
+def login():
     return ea.loginForm()
 
 @app.route('/nav', methods=['GET', 'POST'])

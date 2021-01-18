@@ -6,7 +6,7 @@
     <form method="post">
     {{ form.csrf_token }}
     {{ render_form_row([form.username, form.password], col_class_default='col-md-2') }}
-    {{ render_form_row([form.remember]) }}
+    {{ render_form_row([form.rememberMe]) }}
     {{ render_form_row([form.submit]) }}
     </form>
 {% endblock %}
