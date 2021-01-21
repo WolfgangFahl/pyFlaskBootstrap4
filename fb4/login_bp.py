@@ -16,7 +16,6 @@ import sqlalchemy.types as types
 
 class LoginBluePrint(object):
     
-    instance=None
     '''
     a blueprint for logins
     '''
@@ -38,25 +37,25 @@ class LoginBluePrint(object):
             self.template_folder='templates'    
         self.blueprint=Blueprint(name,__name__,template_folder=self.template_folder)
         self.app=app
-        login = LoginManager(app)
-        self.login=login
+        loginManager = LoginManager(app)
+        self.loginManager=loginManager
         self.hint=None
         app.register_blueprint(self.blueprint)
         
         @app.route('/login',methods=['GET', 'POST'])
-        def loginForm():
-            return self.loginForm()
+        def login():
+            return self.login()
                     
         @app.route('/logout')
         @login_required
         def logout():
             return self.logOut()
         
-        @login.user_loader
+        @loginManager.user_loader
         def load_user(userid):
             return User.query.get(userid)
         
-    def loginForm(self):
+    def login(self):
         '''
         show the login form
         '''
@@ -69,7 +68,7 @@ class LoginBluePrint(object):
                 flash('Invalid username or password')
                 if self.hint is not None:
                     flash(self.hint)
-                return redirect(url_for('loginForm'))
+                return redirect(url_for('login'))
             login_user(user, remember=form.rememberMe.data)
             return redirect(url_for(self.welcome))
         return render_template('login.html', form=form)

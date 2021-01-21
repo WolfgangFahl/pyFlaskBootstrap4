@@ -166,7 +166,7 @@ class ExampleApp(AppWrap):
             return redirect(url_for('index'))
         return render_template('login.html', form=form)
 
-    def messag_delete(self,message_id):    
+    def message_delete(self,message_id):    
         message = Message.query.get(message_id)
         if message:
             db.session.delete(message)
@@ -321,7 +321,7 @@ def edit_message(message_id):
   
 @app.route('/table/<message_id>/delete', methods=['POST'])
 def delete_message(message_id):
-    return ea.message_delte(message_id)
+    return ea.message_delete(message_id)
 
 @app.route('/icon')
 def test_icon():
