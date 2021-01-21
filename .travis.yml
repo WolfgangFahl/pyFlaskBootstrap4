@@ -5,9 +5,9 @@ language: python
 # python versions to be tested
 python:
 #  - "2.7" # see https://github.com/WolfgangFahl/gremlin-python-tutorial/issues/7
-  - "3.6"
-  - "3.7"
-  - "3.8"
+#  - "3.6" getsitepackages issue
+#  - "3.7" "
+#  - "3.8" "
   - "3.9"
 # allow gui output
 services:
