@@ -11,6 +11,8 @@ from wtforms import StringField, SubmitField, BooleanField, PasswordField
 from wtforms.validators import DataRequired, Length
 from fb4.sqldb import db
 from werkzeug.security import generate_password_hash,check_password_hash
+from sqlalchemy import Column
+import sqlalchemy.types as types
 
 class LoginBluePrint(object):
     
@@ -101,10 +103,10 @@ class LoginForm(FlaskForm):
 
 # User handling
 class User(UserMixin,db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
-    email = db.Column(db.String(120), index=True, unique=True)
-    password_hash = db.Column(db.String(128))
+    id = Column(types.Integer, primary_key=True)
+    username = Column(types.String(64), index=True, unique=True)
+    email = Column(types.String(120), index=True, unique=True)
+    password_hash = Column(types.String(128))
 
     def setPassword(self, password):
         self.password_hash = generate_password_hash(password)
