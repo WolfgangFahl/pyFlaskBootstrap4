@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from fb4.app import AppWrap
+from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
 from fb4.widgets import Link, Icon,Image
 from flask import Flask, redirect,render_template, request, flash, Markup, jsonify, url_for
 
 from flask_wtf import FlaskForm, CSRFProtect
-from wtforms import StringField, SubmitField, BooleanField, PasswordField, IntegerField, TextField,\
+from wtforms import StringField, SubmitField, BooleanField, PasswordField, IntegerField,\
     FormField, SelectField, FieldList
 from wtforms.validators import DataRequired, Length
 from wtforms.fields import *
-
+from sqlalchemy import Column
+import sqlalchemy.types as types
 import os
 
 class ExampleForm(FlaskForm):
@@ -38,20 +40,20 @@ class ButtonForm(FlaskForm):
 class TelephoneForm(FlaskForm):
     country_code = IntegerField('Country Code')
     area_code = IntegerField('Area Code/Exchange')
-    number = TextField('Number')
+    number = StringField('Number')
 
 
 class IMForm(FlaskForm):
     protocol = SelectField(choices=[('aim', 'AIM'), ('msn', 'MSN')])
-    username = TextField()
+    username = StringField()
 
 
 class ContactForm(FlaskForm):
-    first_name = TextField()
-    last_name = TextField()
+    first_name = StringField()
+    last_name = StringField()
     mobile_phone = FormField(TelephoneForm)
     office_phone = FormField(TelephoneForm)
-    emails = FieldList(TextField("Email"), min_entries=3)
+    emails = FieldList(StringField("Email"), min_entries=3)
     im_accounts = FieldList(FormField(IMForm), min_entries=2)
 
 class ExampleApp(AppWrap):
@@ -82,6 +84,65 @@ class ExampleApp(AppWrap):
         self.csrf = CSRFProtect(self.app)
         self.loginBluePrint=LoginBluePrint(self.app,'login')
         self.loginBluePrint.hint="'try user: scott, password: tiger2021'"
+        app=self.app
+        
+        #
+        # setup global handlers
+        #
+        @app.before_first_request
+        def before_first_request_func():
+            self.initDB()
+        
+        #
+        # setup the RESTFUL routes for this application
+        #
+        @app.route('/')
+        def index():
+            return self.home()
+        
+        @app.route('/form', methods=['GET', 'POST'])
+        def test_form():
+            return self.form()
+        
+        @app.route('/nav', methods=['GET', 'POST'])
+        def test_nav():
+            return self.nav()
+        
+        @app.route('/pagination', methods=['GET', 'POST'])
+        def test_pagination():
+            return self.pagination()
+        
+        @app.route('/static', methods=['GET', 'POST'])
+        def test_static():
+            return self.static()
+        
+        @app.route('/flash', methods=['GET', 'POST'])
+        def test_flash():
+            return self.flash()
+        
+        @app.route('/table')
+        def test_table():
+            return self.table()
+        
+        @app.route('/table/<message_id>/view')
+        def view_message(message_id):
+            return self.message_view(message_id)
+        
+        @app.route('/table/<message_id>/edit')
+        def edit_message(message_id):
+            return self.message_edit(message_id)
+          
+        @app.route('/table/<message_id>/delete', methods=['POST'])
+        def delete_message(message_id):
+            return self.message_delete(message_id)
+        
+        @app.route('/icon')
+        def test_icon():
+            return self.icon()
+        
+        @app.route('/widgets')
+        def test_widgets():
+            return self.widgets()
         
         
     def initDB(self,limit=20):
@@ -148,23 +209,6 @@ class ExampleApp(AppWrap):
     
     def icon(self):
         return render_template('icon.html')
-    
-    def loginForm(self):
-        '''
-        show the login form
-        '''
-        form = LoginForm()
-        if current_user.is_authenticated:
-            return redirect(url_for('index'))
-        if form.validate_on_submit():
-            user = User.query.filter_by(username=form.username.data).first()
-            if user is None or not user.checkPassword(form.password.data):
-                flash('Invalid username or password')
-                flash('try user: scott, password: tiger2021')
-                return redirect(url_for('login'))
-            login_user(user, remember=form.rememberMe.data)
-            return redirect(url_for('index'))
-        return render_template('login.html', form=form)
 
     def message_delete(self,message_id):    
         message = Message.query.get(message_id)
@@ -253,91 +297,31 @@ class ExampleApp(AppWrap):
     
 # initialization of flask globals
 # we can't help that these are needed and can't be wrapped
-ea=ExampleApp()
-app=ea.app 
 
 # since db.Model needs to be global the Message class is defined here
 class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.Text, nullable=False)
-    author = db.Column(db.String(100), nullable=False)
-    category = db.Column(db.String(100), nullable=False)
-    draft = db.Column(db.Boolean, default=False, nullable=False)
-    create_time = db.Column(db.Integer, nullable=False, unique=True)
+    id = Column(types.Integer, primary_key=True)
+    text = Column(types.Text, nullable=False)
+    author = Column(types.String(100), nullable=False)
+    category = Column(types.String(100), nullable=False)
+    draft = Column(types.Boolean, default=False, nullable=False)
+    create_time = Column(types.Integer, nullable=False, unique=True)
     
 # wget https://raw.githubusercontent.com/twbs/icons/main/bootstrap-icons.svg    
 # xq .svg bootstrap-icons.svg | grep -v http | sed 's/@//' | jq .symbol[].id | cut -d'"' -f2  | awk ' { if ( length > x ) { x = length; y = $0 } }END{ print y; print x }'
 # file-earmark-spreadsheet-fill
 # 29
 class BootstrapIcon(db.Model):
-    id=db.Column(db.String(30), primary_key=True)
-    index=db.Column(db.Integer)
-    
-#
-# setup global handlers
-#
-@app.before_first_request
-def before_first_request_func():
-    ea.initDB()
-
-#
-# setup the RESTFUL routes for this application
-#
-@app.route('/')
-def index():
-    return ea.home()
-
-@app.route('/form', methods=['GET', 'POST'])
-def test_form():
-    return ea.form()
-
-@app.route('/nav', methods=['GET', 'POST'])
-def test_nav():
-    return ea.nav()
-
-@app.route('/pagination', methods=['GET', 'POST'])
-def test_pagination():
-    return ea.pagination()
-
-@app.route('/static', methods=['GET', 'POST'])
-def test_static():
-    return ea.static()
-
-@app.route('/flash', methods=['GET', 'POST'])
-def test_flash():
-    return ea.flash()
-
-@app.route('/table')
-def test_table():
-    return ea.table()
-
-@app.route('/table/<message_id>/view')
-def view_message(message_id):
-    return ea.message_view(message_id)
-
-@app.route('/table/<message_id>/edit')
-def edit_message(message_id):
-    return ea.message_edit(message_id)
-  
-@app.route('/table/<message_id>/delete', methods=['POST'])
-def delete_message(message_id):
-    return ea.message_delete(message_id)
-
-@app.route('/icon')
-def test_icon():
-    return ea.icon()
-
-@app.route('/widgets')
-def test_widgets():
-    return ea.widgets()
+    id=Column(types.String(30), primary_key=True)
+    index=Column(types.Integer)
 
 #
 #  Command line entry point
 #
 if __name__ == '__main__':
+    ea=ExampleApp()
     parser=ea.getParser("Flask + Bootstrap4 demo application for bootstrap-flask")
     args=parser.parse_args()
     # allow remote debugging if specified so on command line
     ea.optionalDebug(args)
     ea.run(args)
- 

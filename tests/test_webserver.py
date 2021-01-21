@@ -6,6 +6,7 @@ Created on 2020-07-11
 import unittest
 import warnings
 from fb4.app import AppWrap
+from fb4_example.bootstrap_flask.exampleapp import ExampleApp
 
 class TestWebServer(unittest.TestCase):
     ''' see https://www.patricksoftwareblog.com/unit-testing-a-flask-application/ '''
@@ -13,8 +14,8 @@ class TestWebServer(unittest.TestCase):
     def setUp(self):
         warnings.simplefilter("ignore", ResourceWarning)
         self.debug=False
-        import  fb4_example.helloweb 
-        app=fb4_example.helloweb.helloWeb.app
+        ea=ExampleApp()
+        app=ea.app
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
         app.config['DEBUG'] = False
@@ -48,11 +49,11 @@ class TestWebServer(unittest.TestCase):
         ''' 
         test the WebServer
         '''
-        queries=['/']
+        queries=['/','/form']
         expected=[
-            "Welcome",
+            "Welcome","Country Code"
         ]
-        #self.debug=True
+        self.debug=False
         for i,query in enumerate(queries):
             response=self.app.get(query)
             self.assertEqual(response.status_code, 200)
