@@ -247,7 +247,7 @@ class ExampleApp(AppWrap):
         pagination = BootstrapIcon.query.paginate(page, per_page=20)
         icons = pagination.items
         displayIcons=[]
-        for i,icon in enumerate(icons):
+        for icon in icons:
             displayIcon=Icon(icon.id)
             displayIcon.userdata['#']=icon.index
             displayIcons.append(displayIcon)
