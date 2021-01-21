@@ -4,7 +4,6 @@ Created on 2021-01-04
 @author: wf
 '''
 from flask import render_template_string
-import inspect
 import os
 import site
 import sys
@@ -104,13 +103,10 @@ class Icon(Widget):
     
     @staticmethod
     def getBootstrapIconsFile():
-        if (hasattr(site, 'getusersitepackages') and inspect.isfunction(site.getusersitepackages())):
-            # work around https://github.com/pypa/virtualenv/issues/804
-            proots=[site.getusersitepackages()]
-        else:
-            proots=[]
-        if (hasattr(site, 'getsitepackages') and inspect.isfunction(site.getsitepackages())):
-            proots.extend(site.getsitepackages())
+        proots=[]
+        # work around https://github.com/pypa/virtualenv/issues/804
+        for proot in [site.getusersitepackages(),site.getsitepackages()]:
+            proots.append(proot)
         iconsFile=None
         for proot in proots:
             iconsFile="%s/flask_bootstrap/static/icons/bootstrap-icons.svg" % proot
