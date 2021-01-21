@@ -21,13 +21,12 @@ class TestIcons(unittest.TestCase):
     def testIcons(self):
         '''
         test getting the bootstrap Icons File
-        '''
-        if sys.version_info >= (3, 9):
-            iconsFile=Icon.getBootstrapIconsFile()
-            self.assertTrue(iconsFile is not None)
-            iconNames=Icon.getBootstrapIconsNames()
-            self.assertTrue(len(iconNames)>1000)
-            pass
+        '''        
+        iconsFile=Icon.getBootstrapIconsFile()
+        self.assertTrue(iconsFile is not None)
+        iconNames=Icon.getBootstrapIconsNames()
+        self.assertTrue(len(iconNames)>1000)
+        pass
 
 
 if __name__ == "__main__":
