@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+
 from fb4.app import AppWrap
+from fb4.sqldb import db
+from fb4.login_bp import LoginBluePrint
 from fb4.widgets import Link, Icon,Image
 from flask import Flask, redirect,render_template, request, flash, Markup, jsonify, url_for
 
@@ -8,10 +11,7 @@ from wtforms import StringField, SubmitField, BooleanField, PasswordField, Integ
     FormField, SelectField, FieldList
 from wtforms.validators import DataRequired, Length
 from wtforms.fields import *
-from flask_login import LoginManager,UserMixin
-from flask_login import current_user, login_user,logout_user
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_sqlalchemy import SQLAlchemy
+
 import os
 
 class ExampleForm(FlaskForm):
@@ -27,17 +27,6 @@ class ExampleForm(FlaskForm):
     secret = PasswordField()
     remember = BooleanField('Remember me')
     submit = SubmitField()
-
-
-class LoginForm(FlaskForm):
-    '''
-    a form with username/password
-    '''
-    username = StringField('Username', validators=[DataRequired(), Length(1, 50)])
-    password = PasswordField('Password', validators=[DataRequired(), Length(8, 150)])
-    rememberMe = BooleanField('Remember me')
-    submit = SubmitField('Login')
-
 
 class ButtonForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(1, 20)])
@@ -88,9 +77,12 @@ class ExampleApp(AppWrap):
         self.app.config['BOOTSTRAP_BTN_SIZE'] = 'sm'
         # app.config['BOOTSTRAP_BOOTSWATCH_THEME'] = 'lumen'  # uncomment this line to test bootswatch theme
 
-        self.db = SQLAlchemy(self.app)
+        db.init_app(self.app)
+        self.db=db
         self.csrf = CSRFProtect(self.app)
-        self.login = LoginManager(self.app)
+        self.loginBluePrint=LoginBluePrint(self.app,'login')
+        self.loginBluePrint.hint="'try user: scott, password: tiger2021'"
+        
         
     def initDB(self,limit=20):
         '''
@@ -103,10 +95,7 @@ class ExampleApp(AppWrap):
         self.initIcons()
         
     def initUsers(self):
-        u=User(id=1,username="scott")
-        u.setPassword("tiger2021")
-        self.db.session.add(u)
-        self.db.session.commit()
+        self.loginBluePrint.addUser(self.db,"scott","tiger2021")
         
     def initMessages(self,limit=20):
         '''
@@ -176,10 +165,6 @@ class ExampleApp(AppWrap):
             login_user(user, remember=form.rememberMe.data)
             return redirect(url_for('index'))
         return render_template('login.html', form=form)
-    
-    def logOut(self):
-        logout_user()
-        return redirect(url_for('index'))
 
     def messag_delete(self,message_id):    
         message = Message.query.get(message_id)
@@ -270,25 +255,6 @@ class ExampleApp(AppWrap):
 # we can't help that these are needed and can't be wrapped
 ea=ExampleApp()
 app=ea.app 
-db=ea.db
-login=ea.login
-
-# User handling
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), index=True, unique=True)
-    email = db.Column(db.String(120), index=True, unique=True)
-    password_hash = db.Column(db.String(128))
-    pass
-
-    def setPassword(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def checkPassword(self, password):
-        return check_password_hash(self.password_hash, password)
-
-def __repr__(self):
-    return '<User {}>'.format(self.username)
 
 # since db.Model needs to be global the Message class is defined here
 class Message(db.Model):
@@ -307,17 +273,12 @@ class BootstrapIcon(db.Model):
     id=db.Column(db.String(30), primary_key=True)
     index=db.Column(db.Integer)
     
-
 #
 # setup global handlers
 #
 @app.before_first_request
 def before_first_request_func():
     ea.initDB()
-    
-@login.user_loader
-def load_user(userid):
-    return User.query.get(userid)
 
 #
 # setup the RESTFUL routes for this application
@@ -329,14 +290,6 @@ def index():
 @app.route('/form', methods=['GET', 'POST'])
 def test_form():
     return ea.form()
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    return ea.loginForm()
-
-@app.route('/logout')
-def logout():
-    return ea.logOut()
 
 @app.route('/nav', methods=['GET', 'POST'])
 def test_nav():
@@ -377,7 +330,6 @@ def test_icon():
 @app.route('/widgets')
 def test_widgets():
     return ea.widgets()
-
 
 #
 #  Command line entry point
