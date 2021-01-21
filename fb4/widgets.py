@@ -104,9 +104,13 @@ class Icon(Widget):
     @staticmethod
     def getBootstrapIconsFile():
         proots=[]
-        # work around https://github.com/pypa/virtualenv/issues/804
-        for proot in [site.getusersitepackages(),site.getsitepackages()]:
-            proots.append(proot)
+        try:
+            for proot in [site.getusersitepackages(),site.getsitepackages()]:
+                proots.append(proot)
+        except Exception:
+            # work around https://github.com/pypa/virtualenv/issues/804
+            # probably venv issue  ignore
+            pass
         iconsFile=None
         for proot in proots:
             iconsFile="%s/flask_bootstrap/static/icons/bootstrap-icons.svg" % proot
