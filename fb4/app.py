@@ -44,6 +44,8 @@ class AppWrap:
         # set default bootstrap button style and size
         self.app.config['BOOTSTRAP_BTN_STYLE'] = 'primary'
         self.app.config['BOOTSTRAP_BTN_SIZE'] = 'sm'
+        SECRET_KEY = os.urandom(32)
+        self.app.config['SECRET_KEY'] = SECRET_KEY
         
     @staticmethod
     def splitPath(path:str):
