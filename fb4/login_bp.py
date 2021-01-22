@@ -42,13 +42,6 @@ class LoginBluePrint(object):
         self.hint=None
         app.register_blueprint(self.blueprint)
         
-        def setLoginArgs(**kwargs):
-            '''
-             Args:
-             **kwargs: Arbitrary keyword arguments to be used for login
-            '''
-            self.loginArgs=kwargs
-        
         @app.route('/login',methods=['GET', 'POST'])
         def login():
             return self.login()
@@ -61,6 +54,13 @@ class LoginBluePrint(object):
         @loginManager.user_loader
         def load_user(userid):
             return User.query.get(userid)
+        
+    def setLoginArgs(self,**kwargs):
+            '''
+             Args:
+             **kwargs: Arbitrary keyword arguments to be used for login
+            '''
+            self.loginArgs=kwargs
         
     def login(self):
         '''
