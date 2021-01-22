@@ -42,6 +42,13 @@ class LoginBluePrint(object):
         self.hint=None
         app.register_blueprint(self.blueprint)
         
+        def setLoginArgs(**kwargs):
+            '''
+             Args:
+             **kwargs: Arbitrary keyword arguments to be used for login
+            '''
+            self.loginArgs=kwargs
+        
         @app.route('/login',methods=['GET', 'POST'])
         def login():
             return self.login()
@@ -55,12 +62,10 @@ class LoginBluePrint(object):
         def load_user(userid):
             return User.query.get(userid)
         
-    def login(self, **kwargs):
+    def login(self):
         '''
         show the login form
         
-        Args:
-             **kwargs: Arbitrary keyword arguments.
         '''
         form = LoginForm()
         if current_user.is_authenticated:
@@ -74,7 +79,7 @@ class LoginBluePrint(object):
                 return redirect(url_for('login'))
             login_user(user, remember=form.rememberMe.data)
             return redirect(url_for(self.welcome))
-        return render_template('login.html', form=form,**kwargs)
+        return render_template('login.html', form=form,**self.loginArgs)
     
     def logOut(self):
         logout_user()
