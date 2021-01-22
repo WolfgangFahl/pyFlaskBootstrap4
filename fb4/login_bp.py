@@ -55,9 +55,12 @@ class LoginBluePrint(object):
         def load_user(userid):
             return User.query.get(userid)
         
-    def login(self):
+    def login(self, **kwargs):
         '''
         show the login form
+        
+        Args:
+             **kwargs: Arbitrary keyword arguments.
         '''
         form = LoginForm()
         if current_user.is_authenticated:
@@ -71,7 +74,7 @@ class LoginBluePrint(object):
                 return redirect(url_for('login'))
             login_user(user, remember=form.rememberMe.data)
             return redirect(url_for(self.welcome))
-        return render_template('login.html', form=form)
+        return render_template('login.html', form=form,**kwargs)
     
     def logOut(self):
         logout_user()
