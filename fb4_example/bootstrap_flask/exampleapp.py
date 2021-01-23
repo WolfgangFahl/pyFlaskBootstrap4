@@ -5,13 +5,12 @@ from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
 from fb4.widgets import Link, Icon,Image
-from flask import Flask, redirect,render_template, request, flash, Markup, jsonify, url_for
-
+from flask import render_template, request, flash, Markup
 from flask_wtf import FlaskForm, CSRFProtect
-from wtforms import StringField, SubmitField, BooleanField, PasswordField, IntegerField,\
-    FormField, SelectField, FieldList
+from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
+    FormField,IntegerField, RadioField, SelectField,  SelectMultipleField,\
+     StringField, SubmitField,  TextAreaField, PasswordField
 from wtforms.validators import DataRequired, Length
-from wtforms.fields import *
 from sqlalchemy import Column
 import sqlalchemy.types as types
 import os
@@ -41,7 +40,6 @@ class TelephoneForm(FlaskForm):
     country_code = IntegerField('Country Code')
     area_code = IntegerField('Area Code/Exchange')
     number = StringField('Number')
-
 
 class IMForm(FlaskForm):
     protocol = SelectField(choices=[('aim', 'AIM'), ('msn', 'MSN')])

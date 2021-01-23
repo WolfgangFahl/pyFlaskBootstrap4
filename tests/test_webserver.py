@@ -44,6 +44,15 @@ class TestWebServer(unittest.TestCase):
             esite,epath=expected[i]
             self.assertEqual(esite,site)
             self.assertEqual(epath,path)
+        
+    def checkResponse(self,response,expectedStatus=200):
+        self.assertEqual(response.status_code, expectedStatus)
+        self.assertTrue(response.data is not None)
+        html=response.data.decode()
+        if self.debug:
+            print(html)
+        return html
+        
 
     def testWebServer(self):
         ''' 
@@ -56,13 +65,24 @@ class TestWebServer(unittest.TestCase):
         self.debug=False
         for i,query in enumerate(queries):
             response=self.app.get(query)
-            self.assertEqual(response.status_code, 200)
-            self.assertTrue(response.data is not None)
-            html=response.data.decode()
-            if self.debug:
-                print(html)
+            html=self.checkResponse(response)
             ehtml=expected[i]
             self.assertTrue(ehtml,ehtml in html)
+            
+    def testLogin(self):
+        '''
+        test the login functionality
+        '''
+        response=self.app.post('/login',data=dict(username='drWho',password='notvalid'),follow_redirects=True);
+        html=self.checkResponse(response)
+        self.assertTrue('Invalid username or password' in html)
+        self.assertFalse('logout' in html)
+        response=self.app.post('/login',data=dict(username='scott',password='tiger2021'),follow_redirects=True);
+        html=self.checkResponse(response)
+        self.assertTrue('logout' in html)
+        response=self.app.get('/logout',follow_redirects=True)
+        #print(html)
+        #self.assertTrue('login' in html)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

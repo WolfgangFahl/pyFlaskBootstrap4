@@ -3,7 +3,7 @@ Created on 19.01.2021
 
 @author: wf
 '''
-from flask import Blueprint, redirect,render_template,request, flash, Markup, jsonify, url_for
+from flask import Blueprint, redirect,render_template, flash, url_for
 from flask_wtf import FlaskForm, CSRFProtect
 from flask_login import LoginManager,UserMixin
 from flask_login import current_user, login_user,logout_user, login_required
@@ -41,6 +41,7 @@ class LoginBluePrint(object):
         self.loginManager=loginManager
         self.hint=None
         app.register_blueprint(self.blueprint)
+        self.setLoginArgs()
         
         @app.route('/login',methods=['GET', 'POST'])
         def login():
@@ -82,6 +83,9 @@ class LoginBluePrint(object):
         return render_template('login.html', form=form,**self.loginArgs)
     
     def logOut(self):
+        '''
+        logout the current user
+        '''
         logout_user()
         return redirect(url_for(self.welcome))
     
