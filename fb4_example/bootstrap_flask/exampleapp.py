@@ -8,12 +8,15 @@ from fb4.widgets import Link, Icon,Image
 from flask import render_template, request, flash, Markup
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
-    FormField,IntegerField, RadioField, SelectField,  SelectMultipleField,\
+    FloatField,FormField,IntegerField, RadioField, SelectField,  SelectMultipleField,\
      StringField, SubmitField,  TextAreaField, PasswordField
 from wtforms.validators import DataRequired, Length
 from sqlalchemy import Column
 import sqlalchemy.types as types
 import os
+import http.client
+import re
+import time
 
 class ExampleForm(FlaskForm):
     """An example form that contains all the supported bootstrap style form fields."""
@@ -53,6 +56,17 @@ class ContactForm(FlaskForm):
     office_phone = FormField(TelephoneForm)
     emails = FieldList(StringField("Email"), min_entries=3)
     im_accounts = FieldList(FormField(IMForm), min_entries=2)
+    
+class PingForm(FlaskForm):
+    host=SelectField(choices=[('facebook','www.facebook.com'),
+        ('google','www.google.com'),
+        ('IBM','www.ibm.com'),
+        ('twitter','www.twitter.com'),
+        ],
+        #https://stackoverflow.com/a/38157356/1497139
+        render_kw={"onchange":"this.form.submit()"}
+    )
+    pingState=StringField('ping state')
 
 class ExampleApp(AppWrap):
     '''
@@ -142,6 +156,9 @@ class ExampleApp(AppWrap):
         def test_widgets():
             return self.widgets()
         
+        @app.route('/ping',methods=['GET', 'POST'])
+        def test_ping():
+            return self.ping()
         
     def initDB(self,limit=20):
         '''
@@ -184,6 +201,26 @@ class ExampleApp(AppWrap):
             bootstrapIcon=BootstrapIcon(id=iconName,index=index+1)
             self.db.session.add(bootstrapIcon)
         self.db.session.commit()
+        
+    def pagePing(self,host, path="/"):
+        """ This function retrieves the status code of a website by requesting
+            HEAD data from the host. This means that it only requests the headers.
+            If the host cannot be reached or something else goes wrong, it returns
+            False.
+            
+            see https://stackoverflow.com/a/1949507/1497139
+        """
+        startTime=time.time()
+        try:
+            conn = http.client.HTTPConnection(host)
+            conn.request("HEAD", path)
+            if re.match("^[23]\d\d$", str(conn.getresponse().status)):
+                state=True
+        except Exception:
+            state=False
+        elapsed=time.time()-startTime    
+        return state,elapsed
+                
         
     def flash(self):
         flash('A simple default alert—check it out!')
@@ -251,6 +288,22 @@ class ExampleApp(AppWrap):
             displayIcons.append(displayIcon)
         return render_template('pagination.html', pagination=pagination, icons=displayIcons)
 
+    def ping(self):
+        '''
+        ping test
+        '''
+        ping_form=PingForm()
+        if ping_form.validate_on_submit():
+            choices=dict(ping_form.host.choices)
+            host=choices[ping_form.host.data]
+            state,pingTime=self.pagePing(host)
+            pingState="%s %5.0f ms" % ("✅" if state else "❌",pingTime*1000)
+            ping_form.pingState.data=pingState
+            pass
+        else:
+            ping_form.pingState=""
+        return render_template('ping.html',ping_form=ping_form)
+    
     def static(self):
         '''
         test static content
