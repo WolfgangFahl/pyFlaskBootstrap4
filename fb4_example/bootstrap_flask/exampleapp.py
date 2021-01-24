@@ -17,6 +17,7 @@ import os
 import http.client
 import re
 import time
+from sqlalchemy.ext.hybrid import hybrid_property
 
 class ExampleForm(FlaskForm):
     """An example form that contains all the supported bootstrap style form fields."""
@@ -69,7 +70,15 @@ class PingForm(FlaskForm):
     
 class IconSearchForm(FlaskForm):
     search=StringField('search', render_kw={"onchange":"this.form.submit()"})
-
+    perPage=SelectField(choices=[('twenty','20'),
+        ('fifty','50'),
+        ('hundred','100'),
+        ('twohundred','200'),
+        ('all','all'),
+        ],
+        #https://stackoverflow.com/a/38157356/1497139
+        render_kw={"onchange":"this.form.submit()"}
+    )
 class ExampleApp(AppWrap):
     '''
     flask app wrapped in class 
@@ -133,6 +142,10 @@ class ExampleApp(AppWrap):
         @app.route('/flash', methods=['GET', 'POST'])
         def test_flash():
             return self.flash()
+        
+        @app.route('/datatable')
+        def test_datatable():
+            return self.datatable()
         
         @app.route('/table')
         def test_table():
@@ -204,6 +217,12 @@ class ExampleApp(AppWrap):
             self.db.session.add(bootstrapIcon)
         self.db.session.commit()
         
+    def getDisplayIcons(self,icons):
+        displayIcons=[]
+        for icon in icons:
+            displayIcons.append("%04d%s%s" % (icon.index,icon.icon,icon.link))
+        return displayIcons
+            
     def pagePing(self,host, path="/"):
         """ This function retrieves the status code of a website by requesting
             HEAD data from the host. This means that it only requests the headers.
@@ -279,12 +298,20 @@ class ExampleApp(AppWrap):
         Returns:
             rendered html for pagination
         '''
-        self.initDB(2000)
-        per_page=20
         search_form=IconSearchForm()
+        perPageChoice=search_form.perPage.data    
+        if perPageChoice is None:
+            perPageChoice="twenty"
+        choices=dict(search_form.perPage.choices)
+        perPageSelection=choices[perPageChoice]
+        search_form.perPage.data=perPageChoice
+        if perPageChoice=="all":
+            per_page=2000
+        else:    
+            per_page=int(perPageSelection)    
         pagination=None
         icons=None
-        if search_form.validate_on_submit():
+        if search_form.validate_on_submit() and search_form.search.data:
             search="%{}%".format(search_form.search.data)
             print("searching %s: " % search)
             icons = BootstrapIcon.query.filter(BootstrapIcon.id.like(search)).all()
@@ -292,11 +319,7 @@ class ExampleApp(AppWrap):
             page = request.args.get('page', 1, type=int)
             pagination = BootstrapIcon.query.paginate(page, per_page=per_page)
             icons = pagination.items
-        displayIcons=[]
-        for icon in icons:
-            displayIcon=Icon(icon.id)
-            displayIcon.userdata['#']=icon.index
-            displayIcons.append(displayIcon)
+        displayIcons=self.getDisplayIcons(icons)
         return render_template('pagination.html', form=search_form,pagination=pagination, icons=displayIcons)
 
     def ping(self):
@@ -320,6 +343,13 @@ class ExampleApp(AppWrap):
         test static content
         '''
         return render_template('static.html')
+    
+    def datatable(self):
+        '''
+        test data table
+        '''
+        icons=BootstrapIcon.query.all()
+        return render_template('datatable.html',listOfDicts=icons)
     
     def table(self):
         '''
@@ -376,7 +406,23 @@ class Message(db.Model):
 class BootstrapIcon(db.Model):
     id=Column(types.String(30), primary_key=True)
     index=Column(types.Integer)
-
+    
+    @hybrid_property
+    def url(self):
+        myUrl="https://icons.getbootstrap.com/icons/%s/" % self.id
+        return myUrl
+    
+    @hybrid_property
+    def link(self):
+        myLink=Link(self.url,self.id)
+        return myLink
+    
+    @hybrid_property
+    def icon(self):
+        myIcon=Icon(self.id)
+        myIcon.userdata['#']=self.index
+        return myIcon
+         
 #
 #  Command line entry point
 #

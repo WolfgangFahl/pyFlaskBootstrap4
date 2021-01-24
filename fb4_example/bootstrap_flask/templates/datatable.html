@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/table.html' import render_table %}
+{% block content %}
+{{ render_table(listOfDicts) }}
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.js"></script>
+{% endblock %}

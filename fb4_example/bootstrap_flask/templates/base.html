@@ -25,6 +25,7 @@
                 {{ render_nav_item('test_static', 'Static', use_li=True) }}
                 {{ render_nav_item('test_flash', 'Flash Messages', use_li=True) }}
                 {{ render_nav_item('test_table', 'Table', use_li=True) }}
+                {{ render_nav_item('test_datatable', 'DataTable', use_li=True) }}
                 {{ render_nav_item('test_icon', 'Icon', use_li=True) }}
                 {{ render_nav_item('test_widgets', 'Widgets', use_li=True) }}
                 <li class="nav-item"><a class="nav-link" href="https://bootstrap-flask.readthedocs.io/" target="_blank">Documentation</a></li>
@@ -50,7 +51,8 @@
             </small>
         {% endblock %}
     </footer>
-
-    {{ bootstrap.load_js() }}
+	{% block scripts %}
+    	{{ bootstrap.load_js() }}
+    {% endblock %}	
 </body>
 </html>

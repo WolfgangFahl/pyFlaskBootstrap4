@@ -5,8 +5,11 @@
 {% block content %}
     <h1>Icons</h1>
     {{ render_form(form) }}
+    {% if pagination %}
+    {{ render_pagination(pagination) }}
+    {% endif %}
     {% for icon in icons %}
-        {{icon.userdata['#']}}{{ icon|safe }}{{icon.name}}<br>
+       {{ icon|safe }}<br>
     {% endfor %}
     {% if pagination %}
     <h1>render_pager</h1>
