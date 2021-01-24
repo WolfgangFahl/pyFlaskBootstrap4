@@ -38,7 +38,6 @@ class ButtonForm(FlaskForm):
     delete = SubmitField()
     cancel = SubmitField()
 
-
 class TelephoneForm(FlaskForm):
     country_code = IntegerField('Country Code')
     area_code = IntegerField('Area Code/Exchange')
@@ -67,6 +66,9 @@ class PingForm(FlaskForm):
         render_kw={"onchange":"this.form.submit()"}
     )
     pingState=StringField('ping state')
+    
+class IconSearchForm(FlaskForm):
+    search=StringField('search', render_kw={"onchange":"this.form.submit()"})
 
 class ExampleApp(AppWrap):
     '''
@@ -278,15 +280,24 @@ class ExampleApp(AppWrap):
             rendered html for pagination
         '''
         self.initDB(2000)
-        page = request.args.get('page', 1, type=int)
-        pagination = BootstrapIcon.query.paginate(page, per_page=20)
-        icons = pagination.items
+        per_page=20
+        search_form=IconSearchForm()
+        pagination=None
+        icons=None
+        if search_form.validate_on_submit():
+            search="%{}%".format(search_form.search.data)
+            print("searching %s: " % search)
+            icons = BootstrapIcon.query.filter(BootstrapIcon.id.like(search)).all()
+        if icons is None:
+            page = request.args.get('page', 1, type=int)
+            pagination = BootstrapIcon.query.paginate(page, per_page=per_page)
+            icons = pagination.items
         displayIcons=[]
         for icon in icons:
             displayIcon=Icon(icon.id)
             displayIcon.userdata['#']=icon.index
             displayIcons.append(displayIcon)
-        return render_template('pagination.html', pagination=pagination, icons=displayIcons)
+        return render_template('pagination.html', form=search_form,pagination=pagination, icons=displayIcons)
 
     def ping(self):
         '''

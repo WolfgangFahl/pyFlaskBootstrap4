@@ -1,13 +1,17 @@
 {% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form %}
 {% from 'bootstrap/pagination.html' import render_pager, render_pagination %}
 
 {% block content %}
     <h1>Icons</h1>
+    {{ render_form(form) }}
     {% for icon in icons %}
         {{icon.userdata['#']}}{{ icon|safe }}{{icon.name}}<br>
     {% endfor %}
+    {% if pagination %}
     <h1>render_pager</h1>
     {{ render_pager(pagination) }}
     <h1>render_pagination</h1>
     {{ render_pagination(pagination) }}
+    {% endif %}
 {% endblock %}
