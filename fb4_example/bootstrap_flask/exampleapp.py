@@ -349,7 +349,10 @@ class ExampleApp(AppWrap):
         test data table
         '''
         icons=BootstrapIcon.query.all()
-        return render_template('datatable.html',listOfDicts=icons)
+        dictList=[]
+        for icon in icons:
+            dictList.append(icon.asDict())
+        return render_template('datatable.html',listOfDicts=dictList)
     
     def table(self):
         '''
@@ -422,6 +425,13 @@ class BootstrapIcon(db.Model):
         myIcon=Icon(self.id)
         myIcon.userdata['#']=self.index
         return myIcon
+    
+    def asDict(self):
+        myDict={
+            'link': self.link,
+            'icon': self.icon
+        }
+        return myDict
          
 #
 #  Command line entry point

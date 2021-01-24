@@ -1,0 +1,79 @@
+{# 
+   Useful Jinja Template Macros
+   
+   e.g. table4DictList
+   https://stackoverflow.com/a/42848018/1497139
+#}
+{# show html header #}
+{% macro header(title) -%}
+<!doctype html>
+<html lang="en">
+  <head>
+  	{% block head %}
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+ 	{% block styles %}
+    <!-- Bootstrap CSS -->
+    {{ bootstrap.load_css() }}
+    {% endblock %}
+ 
+    {% if title is not none %}<title>{{ title }}</title>{%endif %}
+    {% endblock %}
+  </head>
+  <body>
+{%- endmacro %}
+{# show html footer #}
+{% macro footer() -%}
+		{% block scripts %}
+        <!-- Optional JavaScript -->
+        {{ bootstrap.load_js() }}
+        {% endblock %}
+	</body>
+</html>
+{%- endmacro %}    
+{# menu see https://getbootstrap.com/docs/4.0/components/navbar/ #}
+{% macro menu(menuList) -%}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+    {% if menuList %}
+    {% for menuItem in menuList %}
+    			{{ menuItem|safe }}
+    {% endfor %}
+    {% endif %}
+    		</ul>
+ 		</div>   
+	</nav>
+{%- endmacro %}
+{# table for dict list #}
+{% macro table4DictList(dictList) -%}
+<table class="table table-bordered table-hover">
+  <!-- table header -->
+  {% if dictList %}
+  <thead class="thead-light">
+  	<tr>
+  		<th>#</th>
+    	{% for key in dictList[0] %}
+    	<th> {{ key }} </th>
+    	{% endfor %}
+ 	</tr>
+  <thead>
+  <tbody>	
+    <!-- table rows -->
+    {% for dict_item in dictList %}
+    <tr>
+       <td> {{loop.index}} </td>
+       {% for value in dict_item.values() %}
+       <td>  {{ value|safe }} </td>
+       {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>  
+  {% endif %}
+</table>
+{%- endmacro %}
