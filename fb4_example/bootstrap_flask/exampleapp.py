@@ -186,7 +186,7 @@ class ExampleApp(AppWrap):
         self.initIcons()
         
     def initUsers(self):
-        self.loginBluePrint.addUser(self.db,"scott","tiger2021")
+        self.loginBluePrint.addUser(self.db,"scott","tiger2021",userid=100)
         
     def initMessages(self,limit=20):
         '''

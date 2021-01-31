@@ -89,19 +89,23 @@ class LoginBluePrint(object):
         logout_user()
         return redirect(url_for(self.welcome))
     
-    def addUser(self,db,username,password):
+    def addUser(self,db,username:str,password:str,userid:int=1,email:str=None):
         '''
         add a user with the given username and password
         
         Args:    
             db: the SqlAlchemy database connection
+            userid(int): the userid of the user
             username(str): the username for the user
             password(str): the password for the user - only a hash will be stored
+        Returns:
+            the user ust added
         '''
-        u=User(id=1,username=username)
+        u=User(id=userid,username=username)
         u.setPassword(password)
         db.session.add(u)
         db.session.commit()
+        return User
 
 class LoginForm(FlaskForm):
     '''
