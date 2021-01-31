@@ -19,6 +19,10 @@ class HelloWeb(AppWrap):
         '''
         super().__init__()
         
+        @self.app.route('/')
+        def home():
+            return self.home()
+        
     def home(self):
         '''
         render the home page of the HelloWeb application
@@ -28,9 +32,7 @@ class HelloWeb(AppWrap):
     
 helloWeb=HelloWeb()
 app=helloWeb.app 
-@app.route('/')
-def home():
-    return helloWeb.home()
+
 
 if __name__ == '__main__':
     parser=helloWeb.getParser("Flask + Bootstrap4 Demo Web Application")
