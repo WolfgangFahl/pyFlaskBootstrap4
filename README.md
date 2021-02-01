@@ -14,6 +14,12 @@ What it is
 ==========
 Flask + Bootstrap 4 static components and templates for webprojects
 
+Demos
+=====
+see 
+* http://fb4demo.bitplan.com/
+* https://confident.dbis.rwth-aachen.de/dblpconf/
+
 Installation
 ============
 ```bash
