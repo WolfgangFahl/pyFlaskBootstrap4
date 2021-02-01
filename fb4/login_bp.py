@@ -40,6 +40,7 @@ class LoginBluePrint(object):
         loginManager = LoginManager(app)
         self.loginManager=loginManager
         self.hint=None
+        self.luser=None
         app.register_blueprint(self.blueprint)
         self.setLoginArgs()
         
@@ -50,11 +51,13 @@ class LoginBluePrint(object):
         @app.route('/logout')
         @login_required
         def logout():
+            self.luser=None
             return self.logOut()
         
         @loginManager.user_loader
         def load_user(userid):
-            return User.query.get(userid)
+            self.luser=User.query.get(userid)
+            return self.luser
         
     def setLoginArgs(self,**kwargs):
             '''
@@ -88,6 +91,13 @@ class LoginBluePrint(object):
         '''
         logout_user()
         return redirect(url_for(self.welcome))
+    
+    def getLoggedInUser(self):
+        '''
+        get the currently logged in user details
+        '''
+        #https://stackoverflow.com/a/19274791/1497139
+        return self.luser
     
     def addUser(self,db,username:str,password:str,userid:int=1,email:str=None):
         '''

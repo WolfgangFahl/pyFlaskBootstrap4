@@ -14,8 +14,8 @@ class TestWebServer(unittest.TestCase):
     def setUp(self):
         warnings.simplefilter("ignore", ResourceWarning)
         self.debug=False
-        ea=ExampleApp()
-        app=ea.app
+        self.ea=ExampleApp()
+        app=self.ea.app
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
         app.config['DEBUG'] = False
@@ -72,6 +72,9 @@ class TestWebServer(unittest.TestCase):
     def testLogin(self):
         '''
         test the login functionality
+        
+        including https://github.com/WolfgangFahl/pyFlaskBootstrap4/issues/15
+        add function to retrieve details of currently logged in User
         '''
         response=self.app.post('/login',data=dict(username='drWho',password='notvalid'),follow_redirects=True);
         html=self.checkResponse(response)
@@ -80,9 +83,14 @@ class TestWebServer(unittest.TestCase):
         response=self.app.post('/login',data=dict(username='scott',password='tiger2021'),follow_redirects=True);
         html=self.checkResponse(response)
         self.assertTrue('logout' in html)
+        luser=self.ea.loginBluePrint.getLoggedInUser()
+        if self.debug:
+            print(luser)
+        self.assertEqual("scott",luser.username)
         response=self.app.get('/logout',follow_redirects=True)
+        html=self.checkResponse(response)
         #print(html)
-        #self.assertTrue('login' in html)
+        self.assertTrue('login' in html)
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
