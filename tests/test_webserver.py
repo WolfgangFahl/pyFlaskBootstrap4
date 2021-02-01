@@ -83,10 +83,6 @@ class TestWebServer(unittest.TestCase):
         response=self.app.post('/login',data=dict(username='scott',password='tiger2021'),follow_redirects=True);
         html=self.checkResponse(response)
         self.assertTrue('logout' in html)
-        luser=self.ea.loginBluePrint.getLoggedInUser()
-        if self.debug:
-            print(luser)
-        self.assertEqual("scott",luser.username)
         response=self.app.get('/logout',follow_redirects=True)
         html=self.checkResponse(response)
         #print(html)
