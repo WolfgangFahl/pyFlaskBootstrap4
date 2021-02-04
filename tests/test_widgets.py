@@ -37,12 +37,20 @@ class TestWidgets(unittest.TestCase):
             """<li class="nav-item active">
   <a class="nav-link" href="http://test.bitplan.com">BITPlan testSite</a>
 </li>""",
-            """"""
+            """<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item active">
+        <a class="nav-link" href="http://test.bitplan.com">BITPlan testSite</a>
+      </li>
+    </ul>
+  </div>   
+</nav>"""
             ]
         for i,widget in enumerate(widgets):
             self.assertTrue(isinstance(widget,Widget))
             html=widget.render()
-            self.debug=True
+            #self.debug=True
             if self.debug:
                 print(html)
             self.assertEqual(expectedHtml[i],html)
