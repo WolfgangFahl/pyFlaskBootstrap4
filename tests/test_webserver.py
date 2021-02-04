@@ -11,15 +11,19 @@ from fb4_example.bootstrap_flask.exampleapp import ExampleApp
 class TestWebServer(unittest.TestCase):
     ''' see https://www.patricksoftwareblog.com/unit-testing-a-flask-application/ '''
 
-    def setUp(self):
+    @staticmethod
+    def getApp():
         warnings.simplefilter("ignore", ResourceWarning)
-        self.debug=False
-        self.ea=ExampleApp()
-        app=self.ea.app
+        ea=ExampleApp()
+        app=ea.app
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
         app.config['DEBUG'] = False
-        self.app = app.test_client()
+        return ea, app.test_client()
+        
+    def setUp(self):
+        self.debug=False
+        self.ea,self.app=TestWebServer.getApp()
         pass
 
     def tearDown(self):

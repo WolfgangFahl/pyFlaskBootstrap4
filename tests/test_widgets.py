@@ -4,42 +4,45 @@ Created on 2021-01-04
 @author: wf
 '''
 import unittest
-from fb4.widgets import Link,Image,MenuItem,Widget
+from fb4.widgets import Link,Image,Menu,MenuItem,Widget
 
 class TestWidgets(unittest.TestCase):
     '''
     test the HTML widgets
     '''
 
-
     def setUp(self):
         self.debug=False
         pass
 
-
     def tearDown(self):
         pass
-
 
     def testWidgets(self):
         '''
         test widget handling
         '''
+        menu=Menu()
+        menuItem1=MenuItem("http://test.bitplan.com","BITPlan testSite",True)
+        menu.addItem(menuItem1)
         widgets=[
             Link("http://www.bitplan.com","BITPlan webPage",tooltip="BITPlan GmbH"),
             Image("http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png",alt='BITPlan Logo'),
-            MenuItem("http://test.bitplan.com","BITPlan testSite",True)
+            MenuItem("http://test.bitplan.com","BITPlan testSite",True),
+            menu
         ]
         expectedHtml=[
             "<a href='http://www.bitplan.com' title='BITPlan GmbH'>BITPlan webPage</a>",
             "<img src='http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png' alt='BITPlan Logo'/>",
             """<li class="nav-item active">
   <a class="nav-link" href="http://test.bitplan.com">BITPlan testSite</a>
-</li>"""
+</li>""",
+            """"""
             ]
         for i,widget in enumerate(widgets):
             self.assertTrue(isinstance(widget,Widget))
             html=widget.render()
+            self.debug=True
             if self.debug:
                 print(html)
             self.assertEqual(expectedHtml[i],html)

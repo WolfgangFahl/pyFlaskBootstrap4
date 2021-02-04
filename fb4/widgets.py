@@ -7,6 +7,7 @@ from flask import render_template_string
 import os
 import site
 import sys
+import jinja2
 from xml.dom import minidom
 
 class Widget(object):
@@ -24,6 +25,22 @@ class Widget(object):
     def __str__(self):
         html=self.render()
         return html
+    
+    def render_template_string(self,templateContent:str,**args)->str:
+        '''
+        delegate for flask render_template_string
+        
+        Args:
+            templateContent(str): the content of the template
+            args: the arguments
+            
+        Returns:
+            str: the rendered string
+        '''
+        template = jinja2.Template(templateContent)
+        # https://stackoverflow.com/questions/31830663/how-to-render-template-in-flask-without-using-request-context
+        text=template.render(**args)
+        return text
 
 class Link(Widget):   
     '''
@@ -148,7 +165,7 @@ class Icon(Widget):
         template="""
 {%% from 'bootstrap/utils.html' import render_icon %%}        
 {{ render_icon('%s', %s,'%s') }}""" % (self.name,self.size,self.color)
-        html=render_template_string(template)
+        html=self.render_template_string(template)
         return html    
     
 class MenuItem(Widget):
@@ -182,3 +199,40 @@ class MenuItem(Widget):
 %s  <a class="nav-link" href="%s">%s</a>
 %s</li>''' % (self.indent,activeState,self.indent,self.url,self.title,self.indent)
         return html
+    
+class Menu(Widget):
+    ''' 
+    a menu
+    '''
+    
+    def __init__(self,indent=""):
+        super().__init__(indent=indent)
+        self.items=[]
+        
+    def addItem(self,item:MenuItem):
+        '''
+        add the given item
+        
+        Args:
+            item(MenuItem): the menuitem to add
+        '''
+        item.indent="      "
+        self.items.append(item)
+        
+    def render(self):
+        '''
+        render me
+        
+        Returns:
+            str: html code for Menu
+        '''
+        template="""<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+{% if menuItemList %}{% for menuItem in menuItemList %}{{ menuItem|safe }}{% endfor %}{% endif %}
+    </ul>
+  </div>   
+</nav>"""
+        html=self.render_template_string(template,menuItemList=self.items)
+        return html
+        
