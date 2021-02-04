@@ -4,7 +4,7 @@ from fb4.app import AppWrap
 from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
-from fb4.widgets import Link, Icon,Image
+from fb4.widgets import Link, Icon,Image, Menu, MenuItem, DropDownMenu
 from flask import render_template, request, flash, Markup
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
@@ -368,6 +368,10 @@ class ExampleApp(AppWrap):
         '''
         test widgets 
         '''
+        menu=Menu()
+        menu.addItem(MenuItem("http://wiki.bitplan.com","BITPlan Wiki",True))
+        dropDownMenu=DropDownMenu()
+        dropDownMenu.addItem(MenuItem("http://www.bitplan.com","BITPlan Website",True))
         widgetList=[
             [
                 Link("https://github.com/WolfgangFahl/pyFlaskBootstrap4","pyFlaskBootstrap4","Extended Flask + Bootstrap4 Library"),
@@ -386,7 +390,14 @@ class ExampleApp(AppWrap):
                 Icon("award"),Icon("battery"),Icon("book"),Icon("heart"),
                 Icon("calculator",size=48),Icon("person",size=48,color='red'),
                 Icon("wifi",size=64),Icon("wrench",size=64)
-            ]    
+            ],    
+            [
+                menu
+            ],
+            [
+                dropDownMenu
+            ]
+            
         ]
         return render_template('widgets.html',widgetList=widgetList)
     

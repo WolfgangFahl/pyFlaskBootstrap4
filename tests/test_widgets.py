@@ -4,7 +4,7 @@ Created on 2021-01-04
 @author: wf
 '''
 import unittest
-from fb4.widgets import Link,Image,Menu,MenuItem,Widget
+from fb4.widgets import Link,Image,Menu,MenuItem,Widget, DropDownMenu
 
 class TestWidgets(unittest.TestCase):
     '''
@@ -25,11 +25,14 @@ class TestWidgets(unittest.TestCase):
         menu=Menu()
         menuItem1=MenuItem("http://test.bitplan.com","BITPlan testSite",True)
         menu.addItem(menuItem1)
+        dropDownMenu=DropDownMenu()
+        dropDownMenu.addItem(Link("http://www.bitplan.com","BITPlan webPage"))
         widgets=[
             Link("http://www.bitplan.com","BITPlan webPage",tooltip="BITPlan GmbH"),
             Image("http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png",alt='BITPlan Logo'),
             MenuItem("http://test.bitplan.com","BITPlan testSite",True),
-            menu
+            menu,
+            dropDownMenu
         ]
         expectedHtml=[
             "<a href='http://www.bitplan.com' title='BITPlan GmbH'>BITPlan webPage</a>",
@@ -45,12 +48,19 @@ class TestWidgets(unittest.TestCase):
       </li>
     </ul>
   </div>   
-</nav>"""
+</nav>""",
+        """<div class="dropdown">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown</a>
+    <div class="dropdown-menu">
+      <a href='http://www.bitplan.com' class="dropdown-item" >BITPlan webPage</a>
+    </div>
+</div>"""
             ]
         for i,widget in enumerate(widgets):
+            widget.useFlask=False
             self.assertTrue(isinstance(widget,Widget))
             html=widget.render()
-            #self.debug=True
+            self.debug=False
             if self.debug:
                 print(html)
             self.assertEqual(expectedHtml[i],html)

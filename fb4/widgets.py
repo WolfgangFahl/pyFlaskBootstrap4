@@ -14,13 +14,25 @@ class Widget(object):
     '''
     a HTML widget
     '''
-    def __init__(self,indent="",userdata=None):
+    def __init__(self,indent="",userdata=None,useFlask=True):
         self.indent=indent
+        self.classes=[]
+        self.useFlask=useFlask
         if userdata is None:
             self.userdata={}
         else:
             self.userdata=userdata
         pass
+    
+    def addClass(self,clazz):
+        self.classes.append(clazz)
+        
+    def getClass(self):
+        '''
+        get the class attribute for this widget
+        '''
+        classAttr=' class="%s"' % ' '.join(self.classes) if len(self.classes) else ""
+        return classAttr
     
     def __str__(self):
         html=self.render()
@@ -37,16 +49,20 @@ class Widget(object):
         Returns:
             str: the rendered string
         '''
-        template = jinja2.Template(templateContent)
         # https://stackoverflow.com/questions/31830663/how-to-render-template-in-flask-without-using-request-context
-        text=template.render(**args)
+        # https://stackoverflow.com/questions/39288706/jinja2-load-template-from-string-typeerror-no-loader-for-this-environment-spec
+        if self.useFlask:
+            text=render_template_string(templateContent,**args)
+        else:
+            template = jinja2.Template(templateContent)    
+            text=template.render(**args)
         return text
 
 class Link(Widget):   
     '''
     a HTML link
     '''
-    def __init__(self,url,title,tooltip=None,indent=""):
+    def __init__(self,url,title=None,tooltip=None,indent=""):
         '''
         constructor
         
@@ -57,11 +73,11 @@ class Link(Widget):
         '''
         super().__init__(indent=indent)
         self.url=url
-        self.title=title
-        self.tooltip=tooltip
+        self.title="" if title is None else title
+        self.tooltip="title='%s'" % tooltip if tooltip is not None else ""
         
     def render(self):
-        html="%s<a href='%s' title='%s'>%s</a>" % (self.indent,self.url,self.tooltip,self.title)
+        html="%s<a href='%s'%s %s>%s</a>" % (self.indent,self.url,self.getClass(),self.tooltip,self.title)
         return html
         
 class Image(Widget):
@@ -99,7 +115,7 @@ class Image(Widget):
         width=" width='%d'" % self.width if self.width is not None else ""
         height=" height='%d'" % self.height if self.height is not None else ""
         title=" title='%s'" % self.title if self.title is not None else ""
-        html="%s<img src='%s' alt='%s'%s%s%s/>" % (self.indent,self.url,self.alt,title,width,height)
+        html="%s<img src='%s'%s alt='%s'%s%s%s/>" % (self.indent,self.url,self.getClass(),self.alt,title,width,height)
         return html
     
 class Icon(Widget):
@@ -186,6 +202,8 @@ class MenuItem(Widget):
         self.url=url
         self.title=title
         self.active=active
+        self.addClass("nav-item")
+        if active: self.addClass("active")
     
     def render(self):
         '''
@@ -194,13 +212,12 @@ class MenuItem(Widget):
         Returns:
             str: html code for MenuItem
         '''
-        activeState='active' if self.active else ''
-        html='''%s<li class="nav-item %s">
+        html='''%s<li%s>
 %s  <a class="nav-link" href="%s">%s</a>
-%s</li>''' % (self.indent,activeState,self.indent,self.url,self.title,self.indent)
+%s</li>''' % (self.indent,self.getClass(),self.indent,self.url,self.title,self.indent)
         return html
     
-class Menu(Widget):
+class BaseMenu(Widget):
     ''' 
     a menu
     '''
@@ -226,13 +243,41 @@ class Menu(Widget):
         Returns:
             str: html code for Menu
         '''
-        template="""<nav class="navbar navbar-expand-lg navbar-light bg-light">
+        template="<%s%s>%s</%s>" % (self.tag,self.getClass(),self.template,self.tag)
+        html=self.render_template_string(template,menuItemList=self.items)
+        return html
+    
+class Menu(BaseMenu):
+    
+    def __init__(self,indent=""):
+        super().__init__(indent=indent)
+        self.template="""
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
 {% if menuItemList %}{% for menuItem in menuItemList %}{{ menuItem|safe }}{% endfor %}{% endif %}
     </ul>
   </div>   
-</nav>"""
-        html=self.render_template_string(template,menuItemList=self.items)
-        return html
+"""
+        self.addClass("navbar")
+        self.addClass("navbar-expand-lg")
+        self.addClass("navbar-light")
+        self.addClass("bg-light")
+        self.tag="nav"
+    
+class DropDownMenu(BaseMenu):
+
+    def __init__(self,indent=""):
+        super().__init__(indent=indent)
+        self.tag="div"
+        self.addClass("dropdown")
+        # https://www.tutorialrepublic.com/twitter-bootstrap-tutorial/bootstrap-dropdowns.php
+        self.template="""
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown</a>
+    <div class="dropdown-menu">
+{% if menuItemList %}{% for menuItem in menuItemList %}{{ menuItem|safe }}{% endfor %}{% endif %}
+    </div>
+"""
         
+    def addItem(self,item:MenuItem):
+        item.addClass("dropdown-item")
+        super().addItem(item)
