@@ -2,16 +2,7 @@
 
 {% block content %}
     <h1>Bootstrap-Flask examples</h1>
-<ul>
-    <li><a href="{{ url_for('test_form') }}">Form</a></li>
-    <li><a href="{{ url_for('test_nav') }}">Nav</a></li>
-    <li><a href="{{ url_for('test_pagination') }}">Pagination</a></li>
-    <li><a href="{{ url_for('test_ping') }}">Ping</a></li>
-    <li><a href="{{ url_for('test_static') }}">Static</a></li>
-    <li><a href="{{ url_for('test_flash') }}">Flash Messages</a></li>
-    <li><a href="{{ url_for('test_table') }}">Table</a></li>
-    <li><a href="{{ url_for('test_datatable') }}">DataTable</a></li>
-    <li><a href="{{ url_for('test_icon') }}">Icon</a></li>
-    <li><a href="{{ url_for('test_widgets') }}">Widgets</a></li>
-</ul>
+    <ul>{% if menuLinks %}{% for menuLink in menuLinks %}
+      <li>{{ menuLink|safe }}{% endfor %}
+    </ul>{% endif %}
 {% endblock %}

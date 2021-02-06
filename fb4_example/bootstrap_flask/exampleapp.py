@@ -5,7 +5,7 @@ from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
 from fb4.widgets import Link, Icon,Image, Menu, MenuItem, DropDownMenu
-from flask import render_template, request, flash, Markup, Response
+from flask import render_template, request, flash, Markup, Response, url_for
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
     FloatField,FormField,IntegerField, RadioField, SelectField,  SelectMultipleField,\
@@ -286,8 +286,31 @@ class ExampleApp(AppWrap):
         form = LoginForm()
         return render_template('form.html', form=form, telephone_form=TelephoneForm(), contact_form=ContactForm(), im_form=IMForm(), button_form=ButtonForm(), example_form=ExampleForm())
     
+    def getMenu(self):
+        menu=Menu()
+        for menuLink in self.getMenuLinks():
+            menu.addItem(MenuItem(menuLink.url,menuLink.title))
+        return menu
+     
+    def getMenuLinks(self):
+        links=[
+            Link(url_for('test_form'),"Form"),
+            Link(url_for('test_nav'),"Nav"),
+            Link( url_for('test_pagination'),"Pagination"),
+            Link( url_for('test_ping'),"Ping"),
+            Link( url_for('test_events'),"Events"),
+            Link( url_for('test_static'),"Static"),
+            Link( url_for('test_flash'),"Flash Messages"),
+            Link( url_for('test_table'),"Table"),
+            Link( url_for('test_datatable'),"DataTable"),
+            Link( url_for('test_icon'),"Icon"),
+            Link( url_for('test_widgets'),"Widgets")
+        ]
+        return links
+         
     def home(self):
-        return render_template('index.html')
+        menuLinks=self.getMenuLinks()
+        return render_template('index.html',menuLinks=menuLinks)
     
     def icon(self):
         return render_template('icon.html')
