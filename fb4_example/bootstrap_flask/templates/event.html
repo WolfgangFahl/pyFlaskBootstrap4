@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div id="event_div">Watch this space...</div>
+<script>
+var targetContainer = document.getElementById("event_div");
+var eventSource = new EventSource("/eventfeed")
+  eventSource.onmessage = function(e) {
+  targetContainer.innerHTML = e.data;
+};
+</script>
+{% endblock %}

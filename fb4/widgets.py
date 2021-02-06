@@ -265,18 +265,23 @@ class Menu(BaseMenu):
         self.tag="nav"
     
 class DropDownMenu(BaseMenu):
+    '''
+    a drop down menu
+    '''
 
-    def __init__(self,indent=""):
+    def __init__(self,title=None,indent=""):
         super().__init__(indent=indent)
+        self.title="" if title is None else title
         self.tag="div"
         self.addClass("dropdown")
         # https://www.tutorialrepublic.com/twitter-bootstrap-tutorial/bootstrap-dropdowns.php
         self.template="""
-    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown</a>
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown">"""+self.title+"""</a>
     <div class="dropdown-menu">
 {% if menuItemList %}{% for menuItem in menuItemList %}{{ menuItem|safe }}{% endfor %}{% endif %}
     </div>
 """
+        pass
         
     def addItem(self,item:MenuItem):
         item.addClass("dropdown-item")

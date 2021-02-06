@@ -25,7 +25,7 @@ class TestWidgets(unittest.TestCase):
         menu=Menu()
         menuItem1=MenuItem("http://test.bitplan.com","BITPlan testSite",True)
         menu.addItem(menuItem1)
-        dropDownMenu=DropDownMenu()
+        dropDownMenu=DropDownMenu("Dropdown")
         dropDownMenu.addItem(Link("http://www.bitplan.com","BITPlan webPage"))
         widgets=[
             Link("http://www.bitplan.com","BITPlan webPage",tooltip="BITPlan GmbH"),

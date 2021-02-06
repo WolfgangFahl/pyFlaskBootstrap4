@@ -5,7 +5,7 @@ from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
 from fb4.widgets import Link, Icon,Image, Menu, MenuItem, DropDownMenu
-from flask import render_template, request, flash, Markup
+from flask import render_template, request, flash, Markup, Response
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
     FloatField,FormField,IntegerField, RadioField, SelectField,  SelectMultipleField,\
@@ -13,6 +13,7 @@ from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
 from wtforms.validators import DataRequired, Length
 from sqlalchemy import Column
 import sqlalchemy.types as types
+from datetime import datetime
 import os
 import http.client
 import re
@@ -175,6 +176,15 @@ class ExampleApp(AppWrap):
         def test_ping():
             return self.ping()
         
+        @app.route('/events')
+        def test_events():
+            return self.eventExample()
+        
+        @app.route('/eventfeed')
+        def test_eventFeed():
+            return self.eventFeed()
+        
+        
     def initDB(self,limit=20):
         '''
         initialize the database
@@ -241,7 +251,23 @@ class ExampleApp(AppWrap):
             state=False
         elapsed=time.time()-startTime    
         return state,elapsed
+    
+    def getTimeEvent(self):
+        '''this could be any function that blocks until data is ready'''
+        time.sleep(1.0)
+        s=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        return s    
+    
+    def eventFeed(self):
+        return Response(self.genEventStream(), mimetype="text/event-stream")
+    
+    def genEventStream(self):
+        while True:
+            # wait for source data to be available, then push it
+            yield 'data: {}\n\n'.format(self.getTimeEvent())
                 
+    def eventExample(self):
+        return render_template("event.html")
         
     def flash(self):
         flash('A simple default alert—check it out!')
@@ -368,10 +394,18 @@ class ExampleApp(AppWrap):
         '''
         test widgets 
         '''
+        dropDownMenu=DropDownMenu("Links")
+        dropDownMenu.addItem(Link("http://www.bitplan.com","BITPlan Website"))
+        dropDownMenu.addItem(Link("https://bootstrap-flask.readthedocs.io/","Docs"))
+        dropDownMenu.addItem(Link("https://github.com/WolfgangFahl/pyFlaskBootstrap4","github"))
+        dropDownMenu.addItem(Link("https://getbootstrap.com/","bootstrap"))
+     
         menu=Menu()
         menu.addItem(MenuItem("http://wiki.bitplan.com","BITPlan Wiki",True))
-        dropDownMenu=DropDownMenu()
-        dropDownMenu.addItem(MenuItem("http://www.bitplan.com","BITPlan Website",True))
+        menu.addItem(MenuItem("https://bootstrap-flask.readthedocs.io/","Docs"))
+        menu.addItem(MenuItem("https://github.com/WolfgangFahl/pyFlaskBootstrap4","github",))
+        menu.addItem(dropDownMenu)
+        
         widgetList=[
             [
                 Link("https://github.com/WolfgangFahl/pyFlaskBootstrap4","pyFlaskBootstrap4","Extended Flask + Bootstrap4 Library"),
