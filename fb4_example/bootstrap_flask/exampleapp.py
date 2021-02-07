@@ -4,6 +4,7 @@ from fb4.app import AppWrap
 from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
+from fb4.sse_bp import SSE_BluePrint
 from fb4.widgets import Link, Icon,Image, Menu, MenuItem, DropDownMenu
 from flask import render_template, request, flash, Markup, Response, url_for
 from flask_wtf import FlaskForm, CSRFProtect
@@ -108,6 +109,7 @@ class ExampleApp(AppWrap):
         self.csrf = CSRFProtect(self.app)
         self.loginBluePrint=LoginBluePrint(self.app,'login')
         self.loginBluePrint.hint="'try user: scott, password: tiger2021'"
+        self.sseBluePrint=SSE_BluePrint(self.app,'sse')
         app=self.app
         
         #
@@ -183,7 +185,6 @@ class ExampleApp(AppWrap):
         @app.route('/eventfeed')
         def test_eventFeed():
             return self.eventFeed()
-        
         
     def initDB(self,limit=20):
         '''

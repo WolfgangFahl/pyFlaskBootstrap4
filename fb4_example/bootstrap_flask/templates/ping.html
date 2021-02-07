@@ -5,4 +5,38 @@
 
     <h1>Ping test</h1>
     {{ render_form(ping_form) }}
+    
+    <h1>Continuous Ping test</h1>
+    <button class='btn' onclick='startPingStream();'>start</button>
+    <table id='pingtable' class="table table-bordered table-hover">
+	  <thead class="thead-light">
+	  	<tr>
+	  		<th>#</th>
+	    	<th> server </th>
+	    	<th> ping time </th>
+	 	</tr>
+	  	<thead>
+	  <tbody>	
+	  </tbody>  
+	 </table>
+    
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.css">
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function() {
+    	$('.table').DataTable();
+	});
+	function startPingStream() {
+		var source = new EventSource("{{ url_for('test_eventFeed') }}");
+		source.addEventListener('greeting', function(event) {
+    		var sseData = JSON.parse(event.data);
+    		 var t = $('#pingtable').DataTable();
+   		 	// do what you want with this data
+   		 	t.rows.add(sseData).draw()
+		}, false);
+	};		
+    </script>
 {% endblock %}
