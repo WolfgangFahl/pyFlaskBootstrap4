@@ -63,7 +63,7 @@ class Test_ServerSentEvents(unittest.TestCase):
         assert isinstance(gen, types.GeneratorType)
         self.bp.publish("thing", type='example')
         #with patch("fb4.sse_bp.")
-        output = list(gen)
+        # output = list(gen)
         
         
 

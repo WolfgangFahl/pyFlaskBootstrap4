@@ -49,8 +49,8 @@ class TestWidgets(unittest.TestCase):
     </ul>
   </div>   
 </nav>""",
-        """<div class="dropdown">
-    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown</a>
+        """<div class="dropdown nav-item">
+    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
     <div class="dropdown-menu">
       <a href='http://www.bitplan.com' class="dropdown-item" >BITPlan webPage</a>
     </div>
