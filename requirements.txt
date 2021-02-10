@@ -17,3 +17,7 @@ requests
 # basic auth
 #https://pypi.org/project/pydevd/
 pydevd
+# http://pydispatcher.sourceforge.net/
+PyDispatcher
+# https://pypi.org/project/APScheduler/
+APScheduler
