@@ -108,9 +108,15 @@ class PubSub:
             
         '''
         if not channel in self.publisherByChannel:
-            raise("channel %s is not published" % channel)
+            raise Exception("channel %s is not published" % channel)
         publisher=self.publisherByChannel[channel]
         return publisher.subscribe()
+    
+    def listen(self):
+        pass
+    
+    def get_message(self):
+        pass
         
     def unsubscribe(self,channel):
         pass

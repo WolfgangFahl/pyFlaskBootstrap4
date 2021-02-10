@@ -274,9 +274,10 @@ class DropDownMenu(BaseMenu):
         self.title="" if title is None else title
         self.tag="div"
         self.addClass("dropdown")
+        self.addClass("nav-item")
         # https://www.tutorialrepublic.com/twitter-bootstrap-tutorial/bootstrap-dropdowns.php
         self.template="""
-    <a href="#" class="dropdown-toggle" data-toggle="dropdown">"""+self.title+"""</a>
+    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">"""+self.title+"""</a>
     <div class="dropdown-menu">
 {% if menuItemList %}{% for menuItem in menuItemList %}{{ menuItem|safe }}{% endfor %}{% endif %}
     </div>

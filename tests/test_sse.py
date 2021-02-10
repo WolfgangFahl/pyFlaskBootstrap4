@@ -4,8 +4,9 @@ Created on 2021-02-06
 @author: wf
 '''
 import unittest
+from unittest.mock import patch
 from tests.test_webserver import TestWebServer
-from fb4.sse_bp import Message
+import types
 
 class Test_ServerSentEvents(unittest.TestCase):
     '''
@@ -17,10 +18,8 @@ class Test_ServerSentEvents(unittest.TestCase):
         self.bp=self.ea.sseBluePrint
         pass
 
-
     def tearDown(self):
         pass
-
 
     def test_publish_nothing(self):
         '''
@@ -49,6 +48,24 @@ class Test_ServerSentEvents(unittest.TestCase):
         self.bp.publish("thing", channel='garden')
         self.assertTrue("garden" in self.bp.pubsub.publisherByChannel)
         self.assertEqual(1,len(self.bp.pubsub.publisherByChannel))
+        
+    def test_publish_type(self):
+        '''
+        test publishing a thing with a type
+        '''
+        self.bp.publish("thing", type='example')
+        
+    def test_messages(self):
+        '''
+        test message handling
+        '''
+        gen = self.bp.messages()
+        assert isinstance(gen, types.GeneratorType)
+        self.bp.publish("thing", type='example')
+        #with patch("fb4.sse_bp.")
+        output = list(gen)
+        
+        
 
 
 if __name__ == "__main__":
