@@ -8,6 +8,7 @@ from unittest.mock import patch
 from tests.test_webserver import TestWebServer
 from fb4.sse_bp import PubSub
 import datetime
+import time
 from apscheduler.schedulers.background import BackgroundScheduler
 
 class Test_ServerSentEvents(unittest.TestCase):
@@ -20,7 +21,7 @@ class Test_ServerSentEvents(unittest.TestCase):
         self.ea,self.app=TestWebServer.getApp()
         PubSub.reinit()
         self.bp=self.ea.sseBluePrint
-        self.bp.enableDebug(True)
+        self.bp.enableDebug(self.debug)
         self.scheduler = BackgroundScheduler()
         pass
 
@@ -61,17 +62,18 @@ class Test_ServerSentEvents(unittest.TestCase):
         '''
         self.scheduler.start()
         now=datetime.datetime.now()
-        for i in range(15):
-            run_date=now+datetime.timedelta(seconds=0.005+i*0.001)
-            self.scheduler.add_job(self.bp.publish, 'date',run_date=run_date,kwargs={"message":"message %d" %(i+1),"debug":True})
-        # kwargs={'type':'example'}
-        
-        
-        self.debug=True
+        #self.debug=True
+        limit=15
+        for i in range(limit):
+            run_date=now+datetime.timedelta(seconds=0.005)
+            self.scheduler.add_job(self.bp.publish, 'date',run_date=run_date,kwargs={"message":"message %d" %(i+1),"debug":self.debug})   
+        time.sleep(0.01)
         response=self.bp.subscribe('sse',debug=self.debug)
         self.assertEqual(200,response.status_code)
         if self.debug:
             print(response.data)
+        pubsub=PubSub.forChannel('sse')
+        self.assertEqual(limit,pubsub.receiveCount)
    
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
