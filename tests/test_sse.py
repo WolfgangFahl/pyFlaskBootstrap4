@@ -20,6 +20,7 @@ class Test_ServerSentEvents(unittest.TestCase):
         self.ea,self.app=TestWebServer.getApp()
         PubSub.reinit()
         self.bp=self.ea.sseBluePrint
+        self.bp.enableDebug(True)
         self.scheduler = BackgroundScheduler()
         pass
 
@@ -58,15 +59,17 @@ class Test_ServerSentEvents(unittest.TestCase):
         '''
         test message handling
         '''
+        self.scheduler.start()
         now=datetime.datetime.now()
         for i in range(15):
-            run_date=now+datetime.timedelta(seconds=0.005+i*0.01)
-            self.scheduler.add_job(self.bp.publish, 'date',run_date=run_date,kwargs={"message":"message %d" %i})
+            run_date=now+datetime.timedelta(seconds=0.005+i*0.001)
+            self.scheduler.add_job(self.bp.publish, 'date',run_date=run_date,kwargs={"message":"message %d" %(i+1),"debug":True})
         # kwargs={'type':'example'}
         
-        self.scheduler.start()
+        
         self.debug=True
         response=self.bp.subscribe('sse',debug=self.debug)
+        self.assertEqual(200,response.status_code)
         if self.debug:
             print(response.data)
    
