@@ -44,9 +44,9 @@ class SSE_BluePrint(object):
         """
         return PubSub.publish(channel=channel, message=message)
 
-    def subscribe(self,channel,limit=-1):
+    def subscribe(self,channel,limit=-1,debug=False):
         def stream():
-            for message in PubSub.subscribe(channel,limit):
+            for message in PubSub.subscribe(channel,limit,debug=debug):
                 yield str(message)
                 
         return Response(stream(), mimetype='text/event-stream')
@@ -57,13 +57,16 @@ class PubSub:
     '''
     pubSubByChannel={}
     
-    def __init__(self,channel:str='sse',maxsize:int=15):
+    def __init__(self,channel:str='sse',maxsize:int=15, debug=False):
         '''
         Args:
             channel(string): the channel name
+            maxsize(int): the maximum size of the queue
+            debug(bool): whether debugging should be switched on
         '''
         self.channel=channel
         self.queue=Queue(maxsize=maxsize)
+        self.debug=debug
         self.receiveCount=0
         dispatcher.connect(self.receive,signal=channel,sender=dispatcher.Any)
         
@@ -87,10 +90,12 @@ class PubSub:
         '''
         pubsub=PubSub.forChannel(channel)
         pubsub.send(message)
+        return pubsub
         
     @staticmethod    
-    def subscribe(channel,limit=-1):   
+    def subscribe(channel,limit=-1,debug=False):   
         pubsub=PubSub.forChannel(channel)
+        pubsub.debug=debug
         return pubsub.listen(limit)
     
     def send(self,msg):
@@ -105,12 +110,13 @@ class PubSub:
         receive a message
         '''
         if sender is not None:
-            print("received "+msg)
+            self.receiveCount+=1;
+            if self.debug:
+                print("received %d:%s" % (self.receiveCount,msg))
             self.queue.put(msg)
         
     def listen(self,limit=-1):
-        self.listenCount+=1;
-        if limit>0 and self.listenCount>limit:
+        if limit>0 and self.receiveCount>limit:
             return
         yield self.queue.get()
     

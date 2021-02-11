@@ -16,6 +16,7 @@ class Test_ServerSentEvents(unittest.TestCase):
     '''
 
     def setUp(self):
+        self.debug=False
         self.ea,self.app=TestWebServer.getApp()
         PubSub.reinit()
         self.bp=self.ea.sseBluePrint
@@ -49,9 +50,9 @@ class Test_ServerSentEvents(unittest.TestCase):
         '''
         test publishing a thing via the channel garden
         '''
-        self.bp.publish("thing", channel='garden')
+        pubSub=self.bp.publish("thing", channel='garden')
         self.assertTrue("garden" in PubSub.pubSubByChannel)
-        self.assertEqual(1,len(PubSub.pubSubByChannel))
+        self.assertEqual("garden",pubSub.channel)
         
     def test_messages(self):
         '''
@@ -64,8 +65,10 @@ class Test_ServerSentEvents(unittest.TestCase):
         # kwargs={'type':'example'}
         
         self.scheduler.start()
-        response=self.bp.subscribe('sse',limit=4)
-        print(response)
+        self.debug=True
+        response=self.bp.subscribe('sse',debug=self.debug)
+        if self.debug:
+            print(response.data)
    
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
