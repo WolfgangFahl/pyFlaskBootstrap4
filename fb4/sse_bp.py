@@ -3,7 +3,7 @@ Created on 2021-02-06
 
 @author: wf
 '''
-from flask import Blueprint, Response, request, abort, stream_with_context
+from flask import Blueprint, Response, request, abort,stream_with_context
 from queue import Queue
 from pydispatch import dispatcher
 import logging
@@ -12,12 +12,13 @@ class SSE_BluePrint(object):
     '''
     a blueprint for server side events 
     '''
-    def __init__(self,app,name:str,template_folder:str=None,debug=False):
+    def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False):
         '''
         Constructor
         '''
         self.name=name
         self.debug=debug
+        self.withContext=False
         if template_folder is not None:
             self.template_folder=template_folder
         else:
@@ -32,18 +33,42 @@ class SSE_BluePrint(object):
                 PubSub.subscribe(channel)
             self.stream(events)
                 
-    def stream(self,generator): 
+    def streamSSE(self,ssegenerator): 
         '''
-        stream the given generator
+        stream the Server Sent Events for the given SSE generator
         '''  
-        if request.headers.get('accept') == 'text/event-stream':
-            return Response(stream_with_context(generator), content_type='text/event-stream')
+        response=None
+        if self.withContext:
+            if request.headers.get('accept') == 'text/event-stream':
+                response=Response(stream_with_context(ssegenerator), content_type='text/event-stream')
+            else:
+                response=abort(404)    
         else:
-            abort(404)       
+            response= Response(ssegenerator, content_type='text/event-stream')
+        return response
+        
+    def streamGen(self,gen):
+        '''
+        stream the results of the given generator
+        '''
+        ssegen=self.generateSSE(gen)
+        return self.streamSSE(ssegen)   
+            
+    def streamFunc(self,func,limit=-1):
+        '''
+        stream a generator based on the given function
+        Args:
+            func: the function to convert to a generator
+            limit (int): optional limit of how often the generator should be applied - 1 for endless
+        Returns:
+            an SSE Response stream
+        '''
+        gen=self.generate(func,limit)
+        return self.streamGen(gen)
                 
     def generate(self,func,limit=-1):
         '''
-        create a generator from a given function
+        create a SSE generator from a given function
         Args:
             func: the function to convert to a generator
             limit (int): optional limit of how often the generator should be applied - 1 for endless
@@ -55,6 +80,10 @@ class SSE_BluePrint(object):
             # wait for source data to be available, then push it
             count+=1
             result=func()
+            yield result
+        
+    def generateSSE(self,gen):
+        for result in gen:
             yield 'data: {}\n\n'.format(result)
             
     def enableDebug(self,debug:bool):
@@ -87,7 +116,7 @@ class SSE_BluePrint(object):
             for message in PubSub.subscribe(channel,limit,debug=debug):
                 yield str(message)
                 
-        return Response(stream(), mimetype='text/event-stream')
+        return self.streamGen(stream)
     
 class PubSub:
     '''

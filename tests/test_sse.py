@@ -39,6 +39,10 @@ class Test_ServerSentEvents(unittest.TestCase):
         gen=self.bp.generate(inc,3)
         genresult=list(gen)
         self.assertEqual([1,2,3],genresult)
+        gen=self.bp.generate(inc,2)
+        ssegen=self.bp.generateSSE(gen)
+        genresult=list(ssegen)
+        self.assertEqual(['data: 4\n\n', 'data: 5\n\n'],genresult)
         
 
     def test_publish_nothing(self):

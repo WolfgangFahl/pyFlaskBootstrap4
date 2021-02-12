@@ -267,10 +267,8 @@ class ExampleApp(AppWrap):
         create a Server Sent Event Feed
         '''
         sse=self.sseBluePrint
-        # create generator from the given function
-        gen=sse.generate(self.getTimeEvent)
-        # stream from the given generator
-        return sse.stream(gen)
+        # stream from the given function
+        return sse.streamFunc(self.getTimeEvent)
                 
     def eventExample(self):
         return render_template("event.html")
