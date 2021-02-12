@@ -15,6 +15,7 @@ from wtforms.validators import DataRequired, Length
 from sqlalchemy import Column
 import sqlalchemy.types as types
 from datetime import datetime
+import json
 import os
 import http.client
 import re
@@ -187,6 +188,10 @@ class ExampleApp(AppWrap):
         def test_eventFeed():
             return self.eventFeed()
         
+        @app.route('/progressfeed')
+        def test_progressFeed():
+            return self.progressFeed()
+        
     def initDB(self,limit=20):
         '''
         initialize the database
@@ -261,6 +266,20 @@ class ExampleApp(AppWrap):
         time.sleep(1.0)
         s=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
         return s    
+    
+    def progressFeed(self):
+        '''
+        feed progress info as json 
+        '''
+        self.pc=0
+        def progress():
+            time.sleep(0.5)
+            self.pc=(self.pc+5) % 100
+            pcdict={"progress":self.pc}
+            return json.dumps(pcdict)
+            
+        sse=self.sseBluePrint
+        return sse.streamFunc(progress) 
     
     def eventFeed(self):
         '''

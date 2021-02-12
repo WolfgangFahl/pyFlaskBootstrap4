@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% block content %}
+<h3>Server Sent Events demo</h3>
 <div id="event_div">Watch this space...</div>
+<div id="progress1" class="progress">
+  <div class="progress-bar" style="width:0%"></div>
+</div> 
+<pre id="sse_json"></pre>
 <script>
 	function fillContainerFromSSE(id,url) {
 		var targetContainer = document.getElementById(id);
@@ -9,6 +14,17 @@
   			targetContainer.innerHTML = e.data;
 		};
 	};
+	function setProgressFromSSE(pid,debugId,url) {
+		var eventSource = new EventSource(url)
+		var debugContainer = document.getElementById(debugId);
+		var progressContainer=document.getElementById(pid);
+  		eventSource.onmessage = function(event) {
+			var data=JSON.parse(event.data);
+  			debugContainer.innerHTML = event.data;
+  			progressContainer.setAttribute("style","width:"+data.progress+"%");
+		};
+	}
 	fillContainerFromSSE("event_div","/eventfeed");
+	setProgressFromSSE("progress1","sse_json","/progressfeed");
 </script>
 {% endblock %}
