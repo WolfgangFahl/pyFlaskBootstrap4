@@ -2,10 +2,13 @@
 {% block content %}
 <div id="event_div">Watch this space...</div>
 <script>
-var targetContainer = document.getElementById("event_div");
-var eventSource = new EventSource("/eventfeed")
-  eventSource.onmessage = function(e) {
-  targetContainer.innerHTML = e.data;
-};
+	function fillContainerFromSSE(id,url) {
+		var targetContainer = document.getElementById(id);
+		var eventSource = new EventSource(url)
+  		eventSource.onmessage = function(e) {
+  			targetContainer.innerHTML = e.data;
+		};
+	};
+	fillContainerFromSSE("event_div","/eventfeed");
 </script>
 {% endblock %}

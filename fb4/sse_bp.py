@@ -26,15 +26,37 @@ class SSE_BluePrint(object):
         self.app=app
         app.register_blueprint(self.blueprint)
         
-        @self.app.route('/subscribe/<channel>')
+        @self.app.route('/sse/<channel>')
         def subscribe(channel):
-            if request.headers.get('accept') == 'text/event-stream':
-                def events():
-                    PubSub.subscribe(channel)
-                return Response(stream_with_context(events()), content_type='text/event-stream')
-            else:
-                abort(404)   
+            def events():
+                PubSub.subscribe(channel)
+            self.stream(events)
                 
+    def stream(self,generator): 
+        '''
+        stream the given generator
+        '''  
+        if request.headers.get('accept') == 'text/event-stream':
+            return Response(stream_with_context(generator), content_type='text/event-stream')
+        else:
+            abort(404)       
+                
+    def generate(self,func,limit=-1):
+        '''
+        create a generator from a given function
+        Args:
+            func: the function to convert to a generator
+            limit (int): optional limit of how often the generator should be applied - 1 for endless
+        Returns:
+            a generator for the function
+        '''   
+        count=0
+        while limit==-1 or count<limit:
+            # wait for source data to be available, then push it
+            count+=1
+            result=func()
+            yield 'data: {}\n\n'.format(result)
+            
     def enableDebug(self,debug:bool):
         '''
         set my debugging

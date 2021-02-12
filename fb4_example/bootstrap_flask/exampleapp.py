@@ -81,6 +81,7 @@ class IconSearchForm(FlaskForm):
         #https://stackoverflow.com/a/38157356/1497139
         render_kw={"onchange":"this.form.submit()"}
     )
+    
 class ExampleApp(AppWrap):
     '''
     flask app wrapped in class 
@@ -254,18 +255,22 @@ class ExampleApp(AppWrap):
         return state,elapsed
     
     def getTimeEvent(self):
-        '''this could be any function that blocks until data is ready'''
+        '''
+        get the next time stamp
+        '''
         time.sleep(1.0)
         s=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
         return s    
     
     def eventFeed(self):
-        return Response(self.genEventStream(), mimetype="text/event-stream")
-    
-    def genEventStream(self):
-        while True:
-            # wait for source data to be available, then push it
-            yield 'data: {}\n\n'.format(self.getTimeEvent())
+        '''
+        create a Server Sent Event Feed
+        '''
+        sse=self.sseBluePrint
+        # create generator from the given function
+        gen=sse.generate(self.getTimeEvent)
+        # stream from the given generator
+        return sse.stream(gen)
                 
     def eventExample(self):
         return render_template("event.html")

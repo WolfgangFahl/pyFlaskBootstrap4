@@ -27,6 +27,19 @@ class Test_ServerSentEvents(unittest.TestCase):
 
     def tearDown(self):
         pass
+    
+    def test_generate(self):
+        '''
+        check generator handling
+        '''
+        self.count=0
+        def inc():
+            self.count+=1
+            return self.count
+        gen=self.bp.generate(inc,3)
+        genresult=list(gen)
+        self.assertEqual([1,2,3],genresult)
+        
 
     def test_publish_nothing(self):
         '''
