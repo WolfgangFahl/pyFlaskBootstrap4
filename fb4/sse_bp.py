@@ -30,8 +30,8 @@ class SSE_BluePrint(object):
         @self.app.route('/sse/<channel>')
         def subscribe(channel):
             def events():
-                PubSub.subscribe(channel)
-            self.stream(events)
+                return PubSub.subscribe(channel)
+            return self.streamFunc(events)
                 
     def streamSSE(self,ssegenerator): 
         '''
@@ -83,6 +83,9 @@ class SSE_BluePrint(object):
             yield result
         
     def generateSSE(self,gen):
+        '''
+        generate Server Sent events from the given generator
+        '''
         for result in gen:
             yield 'data: {}\n\n'.format(result)
             

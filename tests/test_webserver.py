@@ -5,8 +5,10 @@ Created on 2020-07-11
 '''
 import unittest
 import warnings
+from flask import current_app
 from fb4.app import AppWrap
 from fb4_example.bootstrap_flask.exampleapp import ExampleApp
+import socket
 
 class TestWebServer(unittest.TestCase):
     ''' see https://www.patricksoftwareblog.com/unit-testing-a-flask-application/ '''
@@ -18,8 +20,11 @@ class TestWebServer(unittest.TestCase):
         app=ea.app
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
+        #hostname=socket.getfqdn()
+        #app.config['SERVER_NAME'] = "http://"+hostname
         app.config['DEBUG'] = False
-        return ea, app.test_client()
+        test_app = app.test_client()
+        return ea, test_app
         
     def setUp(self):
         self.debug=False
@@ -68,6 +73,8 @@ class TestWebServer(unittest.TestCase):
         ]
         self.debug=False
         for i,query in enumerate(queries):
+            url=self.ea.basedUrl(query)
+            self.assertTrue(url.startswith("http://"))
             response=self.app.get(query)
             html=self.checkResponse(response)
             ehtml=expected[i]

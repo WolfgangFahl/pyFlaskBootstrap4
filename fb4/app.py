@@ -47,6 +47,18 @@ class AppWrap:
         SECRET_KEY = os.urandom(32)
         self.app.config['SECRET_KEY'] = SECRET_KEY
         
+    def basedUrl(self,url):
+        '''
+        add the base url if need be
+        ''' 
+        if self.baseUrl:
+            baseUrl=self.baseUrl
+        else:
+            baseUrl="http://%s:%s" % (self.host,self.port)
+        if url.startswith("/"):
+            url="%s%s" % (baseUrl,url)
+        return url
+        
     @staticmethod
     def splitPath(path:str):
         '''

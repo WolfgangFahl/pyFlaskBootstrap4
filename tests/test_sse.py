@@ -9,13 +9,14 @@ from tests.test_webserver import TestWebServer
 from fb4.sse_bp import PubSub
 import datetime
 import time
+import requests
+from flask import url_for
 from apscheduler.schedulers.background import BackgroundScheduler
 
 class Test_ServerSentEvents(unittest.TestCase):
     '''
     test the Server-Sent Event Blueprint
-    '''
-
+    '''   
     def setUp(self):
         self.debug=False
         self.ea,self.app=TestWebServer.getApp()
@@ -43,7 +44,6 @@ class Test_ServerSentEvents(unittest.TestCase):
         ssegen=self.bp.generateSSE(gen)
         genresult=list(ssegen)
         self.assertEqual(['data: 4\n\n', 'data: 5\n\n'],genresult)
-        
 
     def test_publish_nothing(self):
         '''
@@ -81,16 +81,25 @@ class Test_ServerSentEvents(unittest.TestCase):
         now=datetime.datetime.now()
         #self.debug=True
         limit=15
+        # 0.5 msecs per Job
+        timePerJob=0.5/1000
         for i in range(limit):
-            run_date=now+datetime.timedelta(seconds=0.005)
+            run_date=now+datetime.timedelta(seconds=timePerJob)
             self.scheduler.add_job(self.bp.publish, 'date',run_date=run_date,kwargs={"message":"message %d" %(i+1),"debug":self.debug})   
-        time.sleep(0.01)
-        response=self.bp.subscribe('sse',debug=self.debug)
+        sleepTime=(limit+2)*(timePerJob)
+        time.sleep(sleepTime)
+        #url=self.ea.basedUrl("/sse/sse")
+        #print(url)
+        response=self.app.get("/sse/sse")
         self.assertEqual(200,response.status_code)
+        #req = requests.get(url, stream = True)
+        #for r in req.iter_content():
+        #    print(r)
         if self.debug:
             print(response.data)
         pubsub=PubSub.forChannel('sse')
         self.assertEqual(limit,pubsub.receiveCount)
+        
    
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
