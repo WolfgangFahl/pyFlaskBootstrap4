@@ -301,14 +301,16 @@ class ExampleApp(AppWrap):
         if "channel" in request.form and "ssechannel" in request.form:
             channel=request.form["channel"]
             ssechannel=request.form["ssechannel"]
-            pubsub=PubSub.forChannel(ssechannel)
+            #pubsub=PubSub.forChannel(ssechannel)
             sse=self.sseBluePrint
             now=datetime.now()
             limit=15
+            self.debug=True
             # 0.5 secs per Job
-            timePerJob=0.5
+            timePerJob=1
             for i in range(limit):
-                run_date=now+timedelta(seconds=timePerJob)
+                run_date=now+timedelta(seconds=timePerJob*i)
+                print("scheduling job %d for %s" % (i,run_date.isoformat()))
                 sse.scheduler.add_job(sse.publish, 'date',run_date=run_date,kwargs={"channel":ssechannel,"message":"message %d" %(i+1),"debug":self.debug})   
             return "%s started" % channel
         else:
