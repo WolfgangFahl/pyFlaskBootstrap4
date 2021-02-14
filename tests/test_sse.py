@@ -4,14 +4,10 @@ Created on 2021-02-06
 @author: wf
 '''
 import unittest
-from unittest.mock import patch
 from tests.test_webserver import TestWebServer
 from fb4.sse_bp import PubSub
 import datetime
 import time
-import requests
-from flask import url_for
-from apscheduler.schedulers.background import BackgroundScheduler
 
 class Test_ServerSentEvents(unittest.TestCase):
     '''
@@ -23,7 +19,6 @@ class Test_ServerSentEvents(unittest.TestCase):
         PubSub.reinit()
         self.bp=self.ea.sseBluePrint
         self.bp.enableDebug(self.debug)
-        self.scheduler = BackgroundScheduler()
         pass
 
     def tearDown(self):
@@ -77,7 +72,6 @@ class Test_ServerSentEvents(unittest.TestCase):
         '''
         test message handling
         '''
-        self.scheduler.start()
         now=datetime.datetime.now()
         #self.debug=True
         limit=15
@@ -85,7 +79,7 @@ class Test_ServerSentEvents(unittest.TestCase):
         timePerJob=0.5/1000
         for i in range(limit):
             run_date=now+datetime.timedelta(seconds=timePerJob)
-            self.scheduler.add_job(self.bp.publish, 'date',run_date=run_date,kwargs={"message":"message %d" %(i+1),"debug":self.debug})   
+            self.bp.scheduler.add_job(self.bp.publish, 'date',run_date=run_date,kwargs={"message":"message %d" %(i+1),"debug":self.debug})   
         sleepTime=(limit+2)*(timePerJob)
         time.sleep(sleepTime)
         #url=self.ea.basedUrl("/sse/sse")

@@ -4,7 +4,7 @@ from fb4.app import AppWrap
 from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
-from fb4.sse_bp import SSE_BluePrint
+from fb4.sse_bp import SSE_BluePrint, PubSub
 from fb4.widgets import Link, Icon,Image, Menu, MenuItem, DropDownMenu
 from flask import render_template, request, flash, Markup, Response, url_for
 from flask_wtf import FlaskForm, CSRFProtect
@@ -14,13 +14,15 @@ from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
 from wtforms.validators import DataRequired, Length
 from sqlalchemy import Column
 import sqlalchemy.types as types
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 import os
 import http.client
 import re
 import time
 from sqlalchemy.ext.hybrid import hybrid_property
+from flask_restful import abort
+
 
 class ExampleForm(FlaskForm):
     """An example form that contains all the supported bootstrap style form fields."""
@@ -143,6 +145,10 @@ class ExampleApp(AppWrap):
         @app.route('/static', methods=['GET', 'POST'])
         def test_static():
             return self.static()
+        
+        @app.route('/startsse1', methods=['POST'])
+        def test_startSSE1():
+            return self.startSSE1()
         
         @app.route('/flash', methods=['GET', 'POST'])
         def test_flash():
@@ -288,6 +294,26 @@ class ExampleApp(AppWrap):
         sse=self.sseBluePrint
         # stream from the given function
         return sse.streamFunc(self.getTimeEvent)
+    
+    def startSSE1(self):
+        '''
+        start a Server Sent Event Feed
+        '''
+        if "channel" in request.form and "ssechannel" in request.form:
+            channel=request.form["channel"]
+            ssechannel=request.form["ssechannel"]
+            pubsub=PubSub.forChannel(ssechannel)
+            sse=self.sseBluePrint
+            now=datetime.now()
+            limit=15
+            # 0.5 secs per Job
+            timePerJob=0.5
+            for i in range(limit):
+                run_date=now+timedelta(seconds=timePerJob)
+                sse.scheduler.add_job(sse.publish, 'date',run_date=run_date,kwargs={"channel":ssechannel,"message":"message %d" %(i+1),"debug":self.debug})   
+            return "%s started" % channel
+        else:
+            abort(501)
                 
     def eventExample(self):
         return render_template("event.html")

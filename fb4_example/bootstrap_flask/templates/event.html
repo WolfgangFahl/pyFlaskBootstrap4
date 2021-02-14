@@ -6,7 +6,29 @@
   <div class="progress-bar" style="width:0%"></div>
 </div> 
 <pre id="sse_json"></pre>
+<button id='start sse1' onclick='startsse("/startsse1","sse1","fb4sse1")'>start</button>
+<div id="fb4sse1"></div>
 <script>
+	async function startsse(starturl,channel,targetId) {
+		var csrf_token = "{{ csrf_token() }}";
+		const form = new FormData();
+		const ssechannel=channel+"-"+csrf_token;
+		form.append("csrf_token",csrf_token)
+		form.append("channel",  channel);
+		form.append("ssechannel",ssechannel);
+		const response=await fetch(
+			starturl, { 
+				method: 'post', body: form
+			}
+		);
+		const result=await response.text();
+		if (response.status==200) {
+		 	sseurl="/sse/"+ssechannel;
+			fillContainerFromSSE(targetId,sseurl);
+		} else {
+			alert("could not start SSE for "+starturl+" code "+response.status+" response "+result);
+		}
+	}
 	function fillContainerFromSSE(id,url) {
 		var targetContainer = document.getElementById(id);
 		var eventSource = new EventSource(url)

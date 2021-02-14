@@ -6,13 +6,14 @@ Created on 2021-02-06
 from flask import Blueprint, Response, request, abort,stream_with_context
 from queue import Queue
 from pydispatch import dispatcher
+from apscheduler.schedulers.background import BackgroundScheduler
 import logging
 
 class SSE_BluePrint(object):
     '''
     a blueprint for server side events 
     '''
-    def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False):
+    def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False,withScheduler=True):
         '''
         Constructor
         '''
@@ -25,13 +26,18 @@ class SSE_BluePrint(object):
             self.template_folder='templates'    
         self.blueprint=Blueprint(name,__name__,template_folder=self.template_folder)
         self.app=app
+        if withScheduler:
+            self.scheduler=BackgroundScheduler()
+            self.scheduler.start()
+        else:
+            self.scheduler=None
         app.register_blueprint(self.blueprint)
         
         @self.app.route('/sse/<channel>')
         def subscribe(channel):
             def events():
                 return PubSub.subscribe(channel)
-            return self.streamFunc(events)
+            return self.streamGen(events())
                 
     def streamSSE(self,ssegenerator): 
         '''
@@ -115,6 +121,14 @@ class SSE_BluePrint(object):
         return PubSub.publish(channel=channel, message=message,debug=debug)
 
     def subscribe(self,channel,limit=-1,debug=False):
+        '''
+        subscribe to the given channel
+        
+        Args:
+            channel(str): the id of the channel
+            limit(int): a potential limit to the number of messages returned
+            debug(bool): True if debugging should be switched on
+        '''
         def stream():
             for message in PubSub.subscribe(channel,limit,debug=debug):
                 yield str(message)
