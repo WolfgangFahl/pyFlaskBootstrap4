@@ -6,7 +6,7 @@ from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
 from fb4.sse_bp import SSE_BluePrint, PubSub
 from fb4.widgets import Link, Icon,Image, Menu, MenuItem, DropDownMenu
-from flask import render_template, request, flash, Markup, Response, url_for
+from flask import render_template, request, flash, Markup, Response, url_for, abort
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
     FloatField,FormField,IntegerField, RadioField, SelectField,  SelectMultipleField,\
@@ -21,7 +21,6 @@ import http.client
 import re
 import time
 from sqlalchemy.ext.hybrid import hybrid_property
-from flask_restful import abort
 
 
 class ExampleForm(FlaskForm):
