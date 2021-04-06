@@ -5,10 +5,9 @@ Created on 2020-07-11
 '''
 import unittest
 import warnings
-from flask import current_app
+
 from fb4.app import AppWrap
 from fb4_example.bootstrap_flask.exampleapp import ExampleApp
-import socket
 
 class TestWebServer(unittest.TestCase):
     ''' see https://www.patricksoftwareblog.com/unit-testing-a-flask-application/ '''
@@ -23,12 +22,12 @@ class TestWebServer(unittest.TestCase):
         #hostname=socket.getfqdn()
         #app.config['SERVER_NAME'] = "http://"+hostname
         app.config['DEBUG'] = False
-        test_app = app.test_client()
-        return ea, test_app
+        client = app.test_client()
+        return ea, app,client
         
     def setUp(self):
         self.debug=False
-        self.ea,self.app=TestWebServer.getApp()
+        self.ea,self.app, self.client=TestWebServer.getApp()
         pass
 
     def tearDown(self):
@@ -61,6 +60,19 @@ class TestWebServer(unittest.TestCase):
         if self.debug:
             print(html)
         return html
+    
+    def testJinjaEnvironment(self):
+        '''
+        test the jinja environment
+        '''
+        # https://github.com/pallets/flask/blob/bbb273bb761461ab329f03ff2d9002f6cb81e2a4/src/flask/app.py#L573
+        self.assertIsNotNone(self.app)
+        jenv=self.app.jinja_env
+        self.assertIsNotNone(jenv)
+        jinjaloader=jenv.app.jinja_loader
+        self.assertIsNotNone(jinjaloader)
+        templates=jenv.loader.list_templates()
+        print(templates)
         
 
     def testWebServer(self):
@@ -75,7 +87,7 @@ class TestWebServer(unittest.TestCase):
         for i,query in enumerate(queries):
             url=self.ea.basedUrl(query)
             self.assertTrue(url.startswith("http://"))
-            response=self.app.get(query)
+            response=self.client.get(query)
             html=self.checkResponse(response)
             ehtml=expected[i]
             self.assertTrue(ehtml,ehtml in html)
@@ -87,14 +99,14 @@ class TestWebServer(unittest.TestCase):
         including https://github.com/WolfgangFahl/pyFlaskBootstrap4/issues/15
         add function to retrieve details of currently logged in User
         '''
-        response=self.app.post('/login',data=dict(username='drWho',password='notvalid'),follow_redirects=True);
+        response=self.client.post('/login',data=dict(username='drWho',password='notvalid'),follow_redirects=True);
         html=self.checkResponse(response)
         self.assertTrue('Invalid username or password' in html)
         self.assertFalse('logout' in html)
-        response=self.app.post('/login',data=dict(username='scott',password='tiger2021'),follow_redirects=True);
+        response=self.client.post('/login',data=dict(username='scott',password='tiger2021'),follow_redirects=True);
         html=self.checkResponse(response)
         self.assertTrue('logout' in html)
-        response=self.app.get('/logout',follow_redirects=True)
+        response=self.client.get('/logout',follow_redirects=True)
         html=self.checkResponse(response)
         #print(html)
         self.assertTrue('login' in html)

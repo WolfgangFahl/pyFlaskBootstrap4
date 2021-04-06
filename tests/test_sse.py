@@ -15,7 +15,7 @@ class Test_ServerSentEvents(unittest.TestCase):
     '''   
     def setUp(self):
         self.debug=False
-        self.ea,self.app=TestWebServer.getApp()
+        self.ea,self.app,self.client=TestWebServer.getApp()
         PubSub.reinit()
         self.bp=self.ea.sseBluePrint
         self.bp.enableDebug(self.debug)
@@ -84,7 +84,7 @@ class Test_ServerSentEvents(unittest.TestCase):
         time.sleep(sleepTime)
         #url=self.ea.basedUrl("/sse/sse")
         #print(url)
-        response=self.app.get("/sse/sse")
+        response=self.client.get("/sse/sse")
         self.assertEqual(200,response.status_code)
         #req = requests.get(url, stream = True)
         #for r in req.iter_content():
