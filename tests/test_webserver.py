@@ -5,7 +5,7 @@ Created on 2020-07-11
 '''
 import unittest
 import warnings
-
+import os
 from fb4.app import AppWrap
 from fb4_example.bootstrap_flask.exampleapp import ExampleApp
 
@@ -61,6 +61,19 @@ class TestWebServer(unittest.TestCase):
             print(html)
         return html
     
+    def checkTemplates(self,loader):
+        '''
+        check the templates for the given loader
+        
+        Args: 
+            loader(BaseLoader): the loader to check
+        '''
+        self.assertIsNotNone(loader)
+        
+        templates=loader.list_templates()
+        print ("%s loader" % type(loader))
+        print(templates)
+    
     def testJinjaEnvironment(self):
         '''
         test the jinja environment
@@ -69,10 +82,19 @@ class TestWebServer(unittest.TestCase):
         self.assertIsNotNone(self.app)
         jenv=self.app.jinja_env
         self.assertIsNotNone(jenv)
-        jinjaloader=jenv.app.jinja_loader
-        self.assertIsNotNone(jinjaloader)
-        templates=jenv.loader.list_templates()
-        print(templates)
+        self.checkTemplates(jenv.loader)
+        jinjaLoader=jenv.app.jinja_loader
+        self.checkTemplates(jinjaLoader)
+        self.assertIsNotNone(jinjaLoader.searchpath)
+        self.assertEqual(1,len(jinjaLoader.searchpath))
+        scriptDir = os.path.dirname(os.path.realpath(__file__))
+        templatePath=os.path.realpath(scriptDir+"/../templates")
+        bootstrapTemplate="%s/bootstrap.html" % templatePath
+        self.assertTrue(os.path.exists(templatePath))
+        self.assertTrue(os.path.exists(bootstrapTemplate))
+        self.ea.addTemplatePath(templatePath)
+        self.assertTrue("bootstrap.html" in jinjaLoader.list_templates())
+        self.assertTrue("bootstrap.html" in jenv.loader.list_templates())
         
 
     def testWebServer(self):

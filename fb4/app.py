@@ -47,6 +47,18 @@ class AppWrap:
         SECRET_KEY = os.urandom(32)
         self.app.config['SECRET_KEY'] = SECRET_KEY
         
+        
+    def addTemplatePath(self,path):
+        '''
+        add another path to be considered for finding templates
+        
+        Args:
+            path(str): the path to add to the template path
+        '''
+        jenv=self.app.jinja_env
+        jinjaLoader=jenv.app.jinja_loader
+        jinjaLoader.searchpath.append(path)
+        
     def basedUrl(self,url):
         '''
         add the base url if need be
