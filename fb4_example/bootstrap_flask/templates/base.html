@@ -8,6 +8,7 @@
     <title>pyFlaskBootstrap4 Demo Application</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
     {{ bootstrap.load_css() }}
+    {{ dropzone.load_css() }}
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
@@ -19,6 +20,7 @@
             <ul class="navbar-nav mr-auto">
                 {{ render_nav_item('index', 'Home', use_li=True) }}
                 {{ render_nav_item('test_form', 'Form', use_li=True) }}
+                {{ render_nav_item('test_upload', 'Upload', use_li=True) }}
                 {{ render_nav_item('test_nav', 'Nav', use_li=True) }}
                 {{ render_nav_item('test_pagination', 'Pagination', use_li=True) }}
                 {{ render_nav_item('test_ping', 'Ping', use_li=True) }}
@@ -53,6 +55,7 @@
     </footer>
 	{% block scripts %}
     	{{ bootstrap.load_js() }}
+    	{{ dropzone.load_js() }}
     {% endblock %}	
 </body>
 </html>

@@ -11,7 +11,10 @@ import sys
 from flask_httpauth import HTTPBasicAuth
 from pydevd_file_utils import setup_client_server_paths
 from flask_bootstrap import Bootstrap
+from flask_dropzone import Dropzone
+from pickle import NONE
 
+dropzone=NONE
 class AppWrap:
     ''' 
     Wrapper for Flask Web Application 
@@ -34,6 +37,8 @@ class AppWrap:
             template_folder=scriptdir + '/../templates'
     
         self.app = Flask(__name__, template_folder=template_folder)
+        global dropzone 
+        dropzone = Dropzone(self.app)
         # pimp up jinja2
         self.app.jinja_env.globals.update(isinstance=isinstance)
         self.auth= HTTPBasicAuth()

@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form, render_field, render_form_row %}
+
+{% block content %}
+	<h1>Upload Form</h1>
+    {{ render_form(upload_form) }}
+{% endblock %}

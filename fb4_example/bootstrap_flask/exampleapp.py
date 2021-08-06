@@ -6,10 +6,10 @@ from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
 from fb4.sse_bp import SSE_BluePrint, PubSub
 from fb4.widgets import Link, Icon,Image, Menu, MenuItem, DropDownMenu
-from flask import render_template, request, flash, Markup, Response, url_for, abort
+from flask import redirect,render_template, request, flash, Markup, Response, url_for, abort
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
-    FloatField,FormField,IntegerField, RadioField, SelectField,  SelectMultipleField,\
+    FloatField,FormField,IntegerField, MultipleFileField, RadioField, SelectField,  SelectMultipleField,\
      StringField, SubmitField,  TextAreaField, PasswordField
 from wtforms.validators import DataRequired, Length
 from sqlalchemy import Column
@@ -17,11 +17,12 @@ import sqlalchemy.types as types
 from datetime import datetime, timedelta
 import json
 import os
+from pathlib import Path
 import http.client
 import re
 import time
 from sqlalchemy.ext.hybrid import hybrid_property
-
+from werkzeug.utils import secure_filename
 
 class ExampleForm(FlaskForm):
     """An example form that contains all the supported bootstrap style form fields."""
@@ -84,6 +85,13 @@ class IconSearchForm(FlaskForm):
         render_kw={"onchange":"this.form.submit()"}
     )
     
+class UploadForm(FlaskForm):
+    '''
+    upload form example
+    '''
+    files = MultipleFileField('File(s) to Upload')
+    submit = SubmitField()
+    
 class ExampleApp(AppWrap):
     '''
     flask app wrapped in class 
@@ -132,6 +140,10 @@ class ExampleApp(AppWrap):
         @app.route('/form', methods=['GET', 'POST'])
         def test_form():
             return self.form()
+        
+        @app.route('/upload', methods=['GET', 'POST'])
+        def test_upload():
+            return self.upload()
         
         @app.route('/nav', methods=['GET', 'POST'])
         def test_nav():
@@ -336,6 +348,22 @@ class ExampleApp(AppWrap):
         form = LoginForm()
         return render_template('form.html', form=form, telephone_form=TelephoneForm(), contact_form=ContactForm(), im_form=IMForm(), button_form=ButtonForm(), example_form=ExampleForm())
     
+    def upload(self):
+        form= UploadForm()
+        filenames=""
+        delim=""
+        if form.validate_on_submit():
+            for file in form.files.data:
+                file_filename = secure_filename(file.filename)
+                filePath=f'/tmp/{file_filename}'
+                with open(filePath, 'wb') as f:
+                    f.write(file.read()) 
+                size=os.path.getsize(filePath)
+                filenames=f"{filenames}{delim}{file_filename}({size})"
+                delim="<br/>"
+            flash(Markup(filenames)) 
+        return render_template('upload.html',upload_form=form)
+    
     def getMenu(self):
         menu=Menu()
         for menuLink in self.getMenuLinks():
@@ -344,8 +372,9 @@ class ExampleApp(AppWrap):
      
     def getMenuLinks(self):
         links=[
-            Link(url_for('test_form'),"Form"),
-            Link(url_for('test_nav'),"Nav"),
+            Link( url_for('test_form'),"Form"),
+            Link( url_for('test_upload'),"Upload"),
+            Link( url_for('test_nav'),"Nav"),
             Link( url_for('test_pagination'),"Pagination"),
             Link( url_for('test_ping'),"Ping"),
             Link( url_for('test_events'),"Events"),
