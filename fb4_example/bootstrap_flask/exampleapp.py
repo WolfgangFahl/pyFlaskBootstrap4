@@ -89,7 +89,7 @@ class UploadForm(FlaskForm):
     '''
     upload form example
     '''
-    files = MultipleFileField('File(s) to Upload')
+    file = MultipleFileField('File(s) to Upload')
     submit = SubmitField()
     
 class ExampleApp(AppWrap):
@@ -349,11 +349,14 @@ class ExampleApp(AppWrap):
         return render_template('form.html', form=form, telephone_form=TelephoneForm(), contact_form=ContactForm(), im_form=IMForm(), button_form=ButtonForm(), example_form=ExampleForm())
     
     def upload(self):
+        '''
+        handle the uploading
+        '''
         form= UploadForm()
         filenames=""
         delim=""
         if form.validate_on_submit():
-            for file in form.files.data:
+            for file in form.file.data:
                 file_filename = secure_filename(file.filename)
                 filePath=f'/tmp/{file_filename}'
                 with open(filePath, 'wb') as f:

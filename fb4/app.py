@@ -12,9 +12,9 @@ from flask_httpauth import HTTPBasicAuth
 from pydevd_file_utils import setup_client_server_paths
 from flask_bootstrap import Bootstrap
 from flask_dropzone import Dropzone
-from pickle import NONE
+from flask_wtf.csrf import CSRFProtect
 
-dropzone=NONE
+dropzone=None
 class AppWrap:
     ''' 
     Wrapper for Flask Web Application 
@@ -51,6 +51,10 @@ class AppWrap:
         self.app.config['BOOTSTRAP_BTN_SIZE'] = 'sm'
         SECRET_KEY = os.urandom(32)
         self.app.config['SECRET_KEY'] = SECRET_KEY
+        self.app.config['WTF_CSRF_ENABLED'] = True
+        # enable CSRF protection
+        self.app.config['DROPZONE_ENABLE_CSRF'] = True
+        self.csrf = CSRFProtect(self.app)
         
         
     def addTemplatePath(self,path):
