@@ -7,6 +7,8 @@
 </div> 
 <pre id="sse_json"></pre>
 <button id='start sse1' onclick='startsse("/startsse1","sse1","fb4sse1")'>start</button>
+{% import 'sse/sse.html' as sse %}
+{{ sse.loadSSEScripts() }}
 <div id="fb4sse1"></div>
 <script>
 	async function startsse(starturl,channel,targetId) {
@@ -29,23 +31,7 @@
 			alert("could not start SSE for "+starturl+" code "+response.status+" response "+result);
 		}
 	}
-	function fillContainerFromSSE(id,url) {
-		var targetContainer = document.getElementById(id);
-		var eventSource = new EventSource(url)
-  		eventSource.onmessage = function(e) {
-  			targetContainer.innerHTML = e.data;
-		};
-	};
-	function setProgressFromSSE(pid,debugId,url) {
-		var eventSource = new EventSource(url)
-		var debugContainer = document.getElementById(debugId);
-		var progressContainer=document.getElementById(pid);
-  		eventSource.onmessage = function(event) {
-			var data=JSON.parse(event.data);
-  			debugContainer.innerHTML = event.data;
-  			progressContainer.setAttribute("style","width:"+data.progress+"%");
-		};
-	}
+	
 	fillContainerFromSSE("event_div","/eventfeed");
 	setProgressFromSSE("progress1","sse_json","/progressfeed");
 </script>

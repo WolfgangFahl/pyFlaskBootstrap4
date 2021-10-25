@@ -1,0 +1,28 @@
+{% macro loadSSEScripts() -%}
+<!--  Server Sent Events flask Blueprint javascript code -->
+<script>
+	/*
+	 fill a container with data supplied by the given event source URL 
+	*/
+	function fillContainerFromSSE(id,url) {
+		var targetContainer = document.getElementById(id);
+		var eventSource = new EventSource(url)
+			eventSource.onmessage = function(e) {
+				targetContainer.innerHTML = e.data;
+		};
+	};
+	/*
+	  set a progress bar with data supplied by the given event source URL
+	 */
+	function setProgressFromSSE(pid,debugId,url) {
+		var eventSource = new EventSource(url)
+		var debugContainer = document.getElementById(debugId);
+		var progressContainer=document.getElementById(pid);
+  		eventSource.onmessage = function(event) {
+			var data=JSON.parse(event.data);
+  			debugContainer.innerHTML = event.data;
+  			progressContainer.setAttribute("style","width:"+data.progress+"%");
+		};
+	}
+</script>
+{%- endmacro %}
