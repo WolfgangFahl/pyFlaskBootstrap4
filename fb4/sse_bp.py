@@ -19,7 +19,7 @@ class SSE_BluePrint(object):
         '''
         self.name=name
         self.debug=debug
-        self.withContext=False
+        self.withContext=withContext
         if template_folder is not None:
             self.template_folder=template_folder
         else:
