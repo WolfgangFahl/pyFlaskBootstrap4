@@ -68,16 +68,22 @@ class AppWrap:
         jinjaLoader=jenv.app.jinja_loader
         jinjaLoader.searchpath.append(path)
         
-    def basedUrl(self,url):
+    def basedUrl(self,url:str)->str:
         '''
         add the base url if need be
+        
+        Args:
+            url(str):  the url to base
+        
+        Return:
+            str: the completed url
         ''' 
         if self.baseUrl:
             baseUrl=self.baseUrl
         else:
-            baseUrl="http://%s:%s" % (self.host,self.port)
+            baseUrl=f"http://{self.host}:{self.port}" 
         if url.startswith("/"):
-            url="%s%s" % (baseUrl,url)
+            url=f"{baseUrl}{url}"
         return url
         
     @staticmethod
