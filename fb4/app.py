@@ -70,10 +70,10 @@ class AppWrap:
         
     def basedUrl(self,url:str)->str:
         '''
-        add the base url if need be
+        add the base url if url is relative to "/"
         
         Args:
-            url(str):  the url to base
+            url(str):  the url to add the base url to
         
         Return:
             str: the completed url
@@ -81,7 +81,10 @@ class AppWrap:
         if self.baseUrl:
             baseUrl=self.baseUrl
         else:
-            baseUrl=f"http://{self.host}:{self.port}" 
+            if self.port==80:
+                baseUrl=f"http://{self.host}" 
+            else:
+                baseUrl=f"http://{self.host}:{self.port}"
         if url.startswith("/"):
             url=f"{baseUrl}{url}"
         return url
