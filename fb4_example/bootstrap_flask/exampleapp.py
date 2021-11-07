@@ -5,7 +5,7 @@ from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
 from fb4.sse_bp import SSE_BluePrint, PubSub
-from fb4.widgets import Link, Icon,Image, Menu, MenuItem, DropDownMenu
+from fb4.widgets import Link, Icon, Image, Menu, MenuItem, DropDownMenu, LodTable
 from flask import redirect,render_template, request, flash, Markup, Response, url_for, abort
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
@@ -510,6 +510,10 @@ class ExampleApp(AppWrap):
         menu.addItem(MenuItem("https://bootstrap-flask.readthedocs.io/","Docs"))
         menu.addItem(MenuItem("https://github.com/WolfgangFahl/pyFlaskBootstrap4","github",))
         menu.addItem(dropDownMenu)
+
+        lodDataGenerator=lambda n: [{'text':f'Text messaage {i}', 'author': f"Author {i}", "Category":f"Category {i}", "create time":datetime.now()+timedelta(days=i)} for i in range(n)]
+        lodTable=LodTable(lodDataGenerator(5))
+        lodDataTable=LodTable(lodDataGenerator(500), isDatatable=True)
         
         widgetList=[
             [
@@ -535,6 +539,10 @@ class ExampleApp(AppWrap):
             ],
             [
                 dropDownMenu
+            ],
+            [
+                lodTable,
+                lodDataTable
             ]
             
         ]

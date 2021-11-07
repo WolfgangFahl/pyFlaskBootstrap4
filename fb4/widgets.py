@@ -3,6 +3,8 @@ Created on 2021-01-04
 
 @author: wf
 '''
+import uuid
+
 from flask import render_template_string
 import os
 import site
@@ -287,3 +289,57 @@ class DropDownMenu(BaseMenu):
     def addItem(self,item:MenuItem):
         item.addClass("dropdown-item")
         super().addItem(item)
+
+
+class LodTable(Widget):
+    """Converts a LOD to a HTML table"""
+
+    def __init__(self, lod: list, headers: dict = None, indent="", isDatatable:bool=False):
+        """
+
+        Args:
+            lod:
+            headers: mapping form dict keys to the corresponding headers. If none the dict keys will be used instead
+            isDatatable(bool): If true the table will be rendered as a datatable
+        """
+        super(LodTable, self).__init__(indent=indent)
+        self.lod = lod
+        if headers is None and self.lod:
+            headers = {h: h for h in {key for record in lod for key in list(record.keys())}}
+        self.headers = headers
+        self.isDatatable=isDatatable
+        self.id = str(uuid.uuid1())
+
+    def render(self):
+        """renders the lod as table"""
+        if not self.lod:
+            return ""
+
+        headers = "\n".join([f'<th scope="col">{col}</th>' for col in self.headers.values()])
+        rows = []
+        for d in self.lod:
+            cells = []
+            for col in self.headers.keys():
+                cellValue = d.get(col)
+                cellValue = cellValue if cellValue else ""
+                cells.append(f"<td>{cellValue}</td>")
+            rows.append("<tr>\n" + "\n".join(cells) + "\n</tr>")
+        table = f"""<table id="{self.id}" class="table table-bordered table-hover">
+                      <thead class="thead-light">
+                        <tr>
+                          {headers}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {' '.join(rows)}
+                      </tbody>
+                    </table>"""
+        if self.isDatatable:
+            table +=f"""<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.css">
+                        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.js"></script>
+                        <script type="text/javascript">
+                        $(document).ready(function() {{
+                            $('#{self.id}').DataTable();
+                        }});
+                        </script>"""
+        return table
