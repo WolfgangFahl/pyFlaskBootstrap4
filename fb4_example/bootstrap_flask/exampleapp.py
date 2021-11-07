@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import uuid
 
 from fb4.app import AppWrap
 from fb4.login_bp import LoginForm
@@ -329,7 +330,9 @@ class ExampleApp(AppWrap):
             abort(501)
                 
     def eventExample(self):
-        return render_template("event.html")
+        gen = ({"id": i, "data": str(uuid.uuid1())} for i in range(150))
+        generator = self.sseBluePrint.streamDictGenerator(gen, slowdown=1)
+        return render_template("event.html", dictStreamdemo=generator)
         
     def flash(self):
         flash('A simple default alert—check it out!')

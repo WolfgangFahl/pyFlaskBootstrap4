@@ -3,10 +3,15 @@ Created on 2021-02-06
 
 @author: wf
 '''
+import json
+import uuid
+import time
+from collections import Generator
+from datetime import datetime, timedelta
 from functools import partial
 
 from flask import Blueprint, Response, request, abort,stream_with_context
-from queue import Queue
+from queue import Queue, Empty
 from pydispatch import dispatcher
 from apscheduler.schedulers.background import BackgroundScheduler
 import logging
@@ -136,6 +141,22 @@ class SSE_BluePrint(object):
                 yield str(message)
                 
         return self.streamGen(stream)
+
+    def streamDictGenerator(self, generator, slowdown: float = 0.0, startDirectly:bool=True):
+        '''
+        Stream the results of the given generator.
+        Format: results are streamed in the following format and multiple dicts might be bundled into a list
+            { "data": [...] }
+
+        Args:
+            generator(Generator): generator that yields dicts
+            slowdown(float): minimum time between yielded results in seconds
+            startDirectly(bool): Start the stream immediately otherwise the stream has to be started by calling startSseChannel()
+        '''
+        dictStream=DictStream(generator, slowdown, self)
+        if startDirectly:
+            dictStream.startSseChannel()
+        return dictStream
     
 class PubSub:
     '''
@@ -249,21 +270,15 @@ class PubSub:
         if limit>0 and self.receiveCount>limit:
             return
 
-        class Timeout:
-            """
-            Functions as timeout signal since None is used as convention to end the queue/task.
-            The timeout is used to avoid a inf
-            """
-            pass
-
-        for item in iter(partial(self.queue.get, timeout=60), Timeout()):
-            print("Queue Size: ",self.queue.qsize())
-            if isinstance(item, Timeout):
-                return
-            if item is None:
-                self.unsubscribe()
-            yield item
-    
+        try:
+            for item in iter(partial(self.queue.get, timeout=60), Empty):
+                if item is None:
+                    self.unsubscribe()
+                    self.queue.task_done()
+                yield item
+        except Empty as e:
+            # queue timeout close stream and let the client try later
+            return
     def unsubscribe(self):
         '''
         unsubscribe me
@@ -271,6 +286,111 @@ class PubSub:
         if self.dispatch:
             dispatcher.disconnect(self.receive, signal=self.channel)
         pass
-            
-   
-        
+
+
+class DictStream:
+    '''
+    Gets a generator which yields dicts and publishes he dicts at an SSE Channel.
+    Also provides functions to set the client side javascript code to subscribe to those results
+    '''
+
+    def __init__(self, generator: Generator, slowdown: float = 0.0, sseBlueprint: SSE_BluePrint = None):
+        self.sseBl = sseBlueprint
+        if slowdown > 0:
+            def slowdown():
+                for record in generator:
+                    time.sleep(0.1)
+                    yield json.dumps(record)
+            self.generator = slowdown()
+        else:
+            self.generator = generator
+        self.sseChannel = str(uuid.uuid1())
+
+    def stream(self):
+        '''
+        Directly stream the generator as response. No subscription of the user to sse channel required but generator is
+        dependent on the stream connection.
+
+        Returns:
+            Response
+        '''
+        return Response(self.generator, content_type="application/stream+json")
+
+    def startSseChannel(self):
+        """
+        Start the generator and publish the results to the sse channel
+        Returns:
+
+        """
+        run_date = datetime.now() + timedelta(seconds=0.5)
+        self.sseBl.scheduler.add_job(self._publishCallback, 'date', run_date=run_date)
+
+    def _publishCallback(self, bundleTime: float = 0.05):
+        """
+        publish all results of the generator to the sse channel.
+        The results are bundled based on the required time to retrieve them. E.g. all results that are retrieved in a
+        time interval of 0.05s are bundled into one publish message.
+        If the end of the generator is reached None is yielded
+
+        Args:
+            bundleTime: Time in seconds in which all retrieved results are published as one data package
+
+        Returns:
+
+        """
+
+        def time_passed(oldepoch, time: timedelta):
+            return (datetime.now() - oldepoch) >= time
+
+        buffer = []
+        oldepoch = datetime.now()
+        for resPart in self.generator:
+            buffer.append(resPart)
+            if time_passed(oldepoch, timedelta(seconds=bundleTime)):
+                self.sseBl.publish(json.dumps({'data': buffer}), self.sseChannel)
+                buffer = []
+                oldepoch = datetime.now()
+        if buffer:
+            self.sseBl.publish(json.dumps({'data': buffer}), self.sseChannel)
+        self.sseBl.publish(None, self.sseChannel)
+
+    def progressMessages(self, show: int = -1, completdeMsg: str = None):
+        """
+        Show the progress of the stream by prining out the dicts.
+        Usage:
+            In the template the script can be called as follows (prgoress is in this case the forwarded object of DictStream)
+            {{ progress.progressMessages()|safe }}
+
+        Args:
+            show(int): Number of messages that are displayed to the user. FIFO principle for message display. If -1 all incoming messages are shown
+            completeMsg(str): Message to display once the stream is finished. If None the debug output will remain
+        """
+        showCompletedMessage = ""
+        if completdeMsg:
+            showCompletedMessage = f'targetContainer.innerHTML = "{completdeMsg}"'
+
+        script = f"""
+        <script>
+            function showProgressMessages(id,url) {{
+                var targetContainer = document.getElementById(id);
+                var eventSource = new EventSource(url);
+                    eventSource.onmessage = function(e) {{
+                    if (e.data == 'None'){{
+                        eventSource.close();
+                        {showCompletedMessage}
+                    }}else{{
+                        if (targetContainer.innerHTML.split('<br>').length < {show} || {"true" if bool(show == -1) else "false"}){{
+                            targetContainer.innerHTML += e.data +"<br>" ;
+                        }}else{{
+                            var prev_msg = targetContainer.innerHTML.split('<br>');
+                            prev_msg.shift();
+                            targetContainer.innerHTML = prev_msg.join('<br>') + e.data +"<br>" ;
+                        }}
+
+                    }}
+                }};
+            }};
+        </script>"""
+        progressMessages = f"""<pre id="{self.sseChannel}"></pre>"""
+        fillProgressBar = f'<script>showProgressMessages("{self.sseChannel}","/sse/{self.sseChannel}");</script>'
+        return script + progressMessages + fillProgressBar
