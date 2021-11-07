@@ -3,6 +3,8 @@ Created on 2021-02-06
 
 @author: wf
 '''
+from functools import partial
+
 from flask import Blueprint, Response, request, abort,stream_with_context
 from queue import Queue
 from pydispatch import dispatcher
@@ -246,7 +248,21 @@ class PubSub:
         '''
         if limit>0 and self.receiveCount>limit:
             return
-        yield self.queue.get()
+
+        class Timeout:
+            """
+            Functions as timeout signal since None is used as convention to end the queue/task.
+            The timeout is used to avoid a inf
+            """
+            pass
+
+        for item in iter(partial(self.queue.get, timeout=60), Timeout()):
+            print("Queue Size: ",self.queue.qsize())
+            if isinstance(item, Timeout):
+                return
+            if item is None:
+                self.unsubscribe()
+            yield item
     
     def unsubscribe(self):
         '''
