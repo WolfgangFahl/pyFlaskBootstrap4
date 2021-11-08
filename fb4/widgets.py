@@ -3,14 +3,19 @@ Created on 2021-01-04
 
 @author: wf
 '''
+import re
 import uuid
 
-from flask import render_template_string
+from flask import render_template_string, request, Markup
 import os
 import site
 import sys
 import jinja2
 from xml.dom import minidom
+
+from wtforms import FileField, StringField
+from wtforms.widgets import HTMLString, html_params
+
 
 class Widget(object):
     '''
@@ -343,3 +348,144 @@ class LodTable(Widget):
                         }});
                         </script>"""
         return table
+
+
+class DropZoneField(FileField):
+    """
+    Mimics the behavior of dropzone.create() and dropzone.config() allowing to define the dropzone inside of an
+    flask form.
+    """
+
+    def __init__(self, id:str, url:str=None, dzInfoMsg:str=None, configParams:dict=None, **kwargs):
+        """
+
+        Important config params:
+           * acceptedFiles: e.g. "image/*,application/pdf,.psd,.ods,.xlsx,text/*"
+
+        Args:
+            id: id of the dropzone field
+            url(str): target of the action. If used in form the file are submitted wwith the form
+            dzInfoMsg(str): Mseeage to be shown as hint how to use the dropzone
+            configParams(dict): Dropzone configuration. Overwrites the default config. see https://docs.dropzone.dev/configuration/basics/configuration-options
+        """
+        self.fieldId=id
+        super(DropZoneField, self).__init__(render_kw={"id":self.fieldId}, **kwargs)
+        if url is None:
+            if request:
+                url=request.url_rule.rule
+        self.url=url
+        if dzInfoMsg is None:
+            dzInfoMsg="Please drop a file or click to select a file."
+        self.dzInfoMsg=dzInfoMsg
+        self.config={
+            'url': self.url,
+            'autoProcessQueue': False,
+            'uploadMultiple': True,
+            'parallelUploads': 30,
+            'paramName': self.id,
+            'previewsContainer': f"#{self.fieldId}Field",
+            'maxFilesize': 5,
+            'acceptedFiles': ".ods, .pdf, .xlsx",
+            'maxFiles': 30,
+            'dictDefaultMessage': "Drop files here or click to upload.",
+            'dictFallbackMessage': "Your browser does not support drag'n'drop file uploads.",
+            'dictInvalidFileType': "You can't upload files of this type.",
+            'dictFileTooBig': "File is too big {{filesize}}. Max filesize: {{maxFilesize}}MiB.",
+            'dictResponseError': "Server error: {{statusCode}}",
+            'dictMaxFilesExceeded': "You can't upload any more files.",
+            'dictCancelUpload': "Cancel upload",
+            'dictRemoveFile': "Remove file",
+            'dictCancelUploadConfirmation': "You really want to delete this file?",
+            'dictUploadCanceled': "Upload canceled",
+        }
+        if configParams:
+            for param, value in configParams.items():
+                # overwrite default config
+                self.config[param]=value
+
+    def process_formdata(self, valuelist):
+        """
+        If files are submitted they will be put into the data property
+        """
+        files=[]
+        regex = re.compile(fr"({self.config.get('paramName')})(\[\d+\])?")
+        for fileName, file in request.files.items():
+            if re.match(regex, fileName):
+                files.append(file)
+        self.data=files
+
+    def jsConfig(self):
+        """
+        java script clause configuring the dropzone
+        """
+        configParams={}
+        for param, value in self.config.items():
+            if isinstance(value, bool):
+                if value:
+                    configParams[param]="true"
+                else:
+                    configParams[param]="false"
+            elif isinstance(value, str):
+                configParams[param] = f'"{value}"'
+            else:
+                configParams[param] = value
+        processedParams=[f'{param}: {value}' for param,value in configParams.items()]
+        processedParams.append(f"'headers': {{'X-CSRF-Token': document.getElementById('{self.fieldId}').querySelector('#csrf_token').value }}")
+        configParamsStr=r','.join(processedParams)
+        config=f'''Dropzone.options.{self.fieldId} = {{
+                      init: function() {{
+                            dz = this;                             
+                            document.getElementById('{self.fieldId}').querySelector("#submit").addEventListener("click", function handler(e) {{
+                                e.currentTarget.removeEventListener(e.type, handler);
+                                e.preventDefault();
+                                e.stopPropagation();
+                                dz.processQueue();
+                            }});
+                            this.on("queuecomplete", function(file) {{
+                                document.getElementById('{self.fieldId}').querySelector("#submit").click();
+                            }});
+                            this.on("complete", function(file) {{
+                                this.removeFile(file);
+                            }});
+                      }},
+                       success:function(file, response){{
+                            var newDoc = document.open("text/html", "replace");
+                            newDoc.write(response);
+                            newDoc.close();
+                        }},
+                      { configParamsStr }
+                  }};'''
+
+        return f"<script>{config}</script>"
+
+    def __call__(self, **kwargs):
+        """
+        renders the dropzone to html
+        """
+        setClass = f"<script>document.getElementById('{self.fieldId}Field').parentNode.parentNode.classList.add('dropzone');document.getElementById('{self.fieldId}Field').parentNode.parentNode.id='{self.fieldId}';</script>"
+        return Markup(f'<div class="dropzone-previews" id="{self.fieldId}Field" action="submit"></div> <div class="dz-default dz-message" data-dz-message><span>{self.dzInfoMsg}</span></div>') + Markup(setClass) + Markup(self.jsConfig())
+
+
+
+class ButtonWidget(object):
+    """
+    See https://gist.github.com/doobeh/239b1e4586c7425e5114
+    Renders a multi-line text area.
+    `rows` and `cols` ought to be passed as keyword args when rendering.
+    """
+    input_type = 'button'
+
+    html_params = staticmethod(html_params)
+
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault('id', field.id)
+        kwargs.setdefault('type', self.input_type)
+        if 'value' not in kwargs:
+            kwargs['value'] = field._value()
+        params = self.html_params(name=field.name, **kwargs)
+        label = field.label.text
+        return Markup(f'<button {params}>{label}</button>')
+
+
+class ButtonField(StringField):
+    widget = ButtonWidget()
