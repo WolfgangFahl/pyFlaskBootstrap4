@@ -16,7 +16,7 @@ SQLAlchemy-Utils
 # https://pypi.org/project/Flask-WTF/
 Flask-WTF
 # https://pypi.org/project/WTForms
-WTForms=2.3.3
+WTForms==2.3.3
 # requests (for forwarding)
 # https://pypi.org/project/requests/
 requests
