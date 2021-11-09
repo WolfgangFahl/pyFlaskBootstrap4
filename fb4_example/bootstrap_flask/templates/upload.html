@@ -3,11 +3,9 @@
 
 {% block content %}
 <!--  https://github.com/greyli/flask-dropzone/issues/29 -->
-<script type="text/javascript">
-	Dropzone.options.myDropzone.headers = {"X-CSRF-Token": "{{ csrf_token() }}"}
-</script>
 	<h1>Upload Form</h1>
     {{ render_form(upload_form) }}
-    {{ dropzone.create(action=url_for('test_upload')) }}
-    {{ dropzone.config() }}
+
+    <h1>Dropzone Form</h1>
+        {{ render_form(dropzone_form) }}
 {% endblock %}

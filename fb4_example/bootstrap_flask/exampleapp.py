@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
+import uuid
 
 from fb4.app import AppWrap
 from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
-from fb4.sse_bp import SSE_BluePrint, PubSub
-from fb4.widgets import Link, Icon,Image, Menu, MenuItem, DropDownMenu
-from flask import redirect,render_template, request, flash, Markup, Response, url_for, abort
+from fb4.sse_bp import SSE_BluePrint
+from fb4.widgets import Link, Icon, Image, Menu, MenuItem, DropDownMenu, LodTable, DropZoneField, ButtonField
+from flask import redirect,render_template, request, flash, Markup, url_for, abort
 from flask_wtf import FlaskForm, CSRFProtect
-from wtforms import BooleanField,DateField,DateTimeField,FieldList, FileField, \
-    FloatField,FormField,IntegerField, MultipleFileField, RadioField, SelectField,  SelectMultipleField,\
-     StringField, SubmitField,  TextAreaField, PasswordField
+from wtforms import BooleanField, DateField, DateTimeField, FieldList, FileField, \
+    FloatField, FormField, IntegerField, MultipleFileField, RadioField, SelectField, SelectMultipleField, \
+    StringField, SubmitField, TextAreaField, PasswordField
 from wtforms.validators import DataRequired, Length
 from sqlalchemy import Column
 import sqlalchemy.types as types
 from datetime import datetime, timedelta
 import json
 import os
-from pathlib import Path
 import http.client
 import re
 import time
@@ -91,7 +91,12 @@ class UploadForm(FlaskForm):
     '''
     file = MultipleFileField('File(s) to Upload')
     submit = SubmitField()
-    
+
+class DropZoneWidgetForm(FlaskForm):
+    dropzone = DropZoneField(id="TestDropZone")
+    fileName=StringField()
+    submit = ButtonField( )
+
 class ExampleApp(AppWrap):
     '''
     flask app wrapped in class 
@@ -189,7 +194,7 @@ class ExampleApp(AppWrap):
         def test_icon():
             return self.icon()
         
-        @app.route('/widgets')
+        @app.route('/widgets', methods=['GET', 'POST'])
         def test_widgets():
             return self.widgets()
         
@@ -329,7 +334,9 @@ class ExampleApp(AppWrap):
             abort(501)
                 
     def eventExample(self):
-        return render_template("event.html")
+        gen = ({"id": i, "data": str(uuid.uuid1())} for i in range(150))
+        generator = self.sseBluePrint.streamDictGenerator(gen, slowdown=1)
+        return render_template("event.html", dictStreamdemo=generator)
         
     def flash(self):
         flash('A simple default alert—check it out!')
@@ -352,20 +359,37 @@ class ExampleApp(AppWrap):
         '''
         handle the uploading
         '''
-        form= UploadForm()
+        upload_form= UploadForm()
+        dropzone_form=DropZoneWidgetForm()
         filenames=""
         delim=""
-        if form.validate_on_submit():
-            for file in form.file.data:
+        if upload_form.validate_on_submit():
+            for file in upload_form.file.data:
                 file_filename = secure_filename(file.filename)
+                if file_filename == "":
+                    file_filename="Test"
                 filePath=f'/tmp/{file_filename}'
                 with open(filePath, 'wb') as f:
-                    f.write(file.read()) 
+                    f.write(file.read())
                 size=os.path.getsize(filePath)
                 filenames=f"{filenames}{delim}{file_filename}({size})"
                 delim="<br/>"
-            flash(Markup(filenames)) 
-        return render_template('upload.html',upload_form=form)
+            if filenames:
+                flash(Markup(filenames), 'info')
+            filenames=""
+        if dropzone_form.validate_on_submit():
+            for file in dropzone_form.dropzone.data:
+                file_filename = secure_filename(file.filename)
+                if file_filename == "":
+                    file_filename="Test"
+                filePath=f'/tmp/{file_filename}'
+                with open(filePath, 'wb') as f:
+                    f.write(file.read())
+                size=os.path.getsize(filePath)
+                filenames=f"{filenames}{delim}{file_filename}({size})"
+                delim="<br/>"
+                flash(f"File {file_filename} stored under {dropzone_form.fileName.data}")
+        return render_template('upload.html',upload_form=upload_form,dropzone_form=dropzone_form)
     
     def getMenu(self):
         menu=Menu()
@@ -510,7 +534,11 @@ class ExampleApp(AppWrap):
         menu.addItem(MenuItem("https://bootstrap-flask.readthedocs.io/","Docs"))
         menu.addItem(MenuItem("https://github.com/WolfgangFahl/pyFlaskBootstrap4","github",))
         menu.addItem(dropDownMenu)
-        
+
+        lodDataGenerator=lambda n: [{'text':f'Text messaage {i}', 'author': f"Author {i}", "Category":f"Category {i}", "create time":datetime.now()+timedelta(days=i)} for i in range(n)]
+        lodTable=LodTable(lodDataGenerator(5))
+        lodDataTable=LodTable(lodDataGenerator(500), isDatatable=True)
+
         widgetList=[
             [
                 Link("https://github.com/WolfgangFahl/pyFlaskBootstrap4","pyFlaskBootstrap4","Extended Flask + Bootstrap4 Library"),
@@ -535,6 +563,10 @@ class ExampleApp(AppWrap):
             ],
             [
                 dropDownMenu
+            ],
+            [
+                lodTable,
+                lodDataTable
             ]
             
         ]
@@ -582,7 +614,6 @@ class BootstrapIcon(db.Model):
             'icon': self.icon
         }
         return myDict
-         
 #
 #  Command line entry point
 #

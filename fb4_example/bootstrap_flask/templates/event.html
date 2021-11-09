@@ -10,6 +10,9 @@
 {% import 'sse/sse.html' as sse %}
 {{ sse.loadSSEScripts() }}
 <div id="fb4sse1"></div>
+
+<h3>DictGeneratorStream Demo</h3>
+    {{ dictStreamdemo.progressMessages(5, "Generator finished! reload page to restart the demo")|safe }}
 <script>
 	async function startsse(starturl,channel,targetId) {
 		var csrf_token = "{{ csrf_token() }}";

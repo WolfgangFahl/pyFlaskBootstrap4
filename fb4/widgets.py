@@ -3,12 +3,19 @@ Created on 2021-01-04
 
 @author: wf
 '''
-from flask import render_template_string
+import re
+import uuid
+
+from flask import render_template_string, request, Markup
 import os
 import site
 import sys
 import jinja2
 from xml.dom import minidom
+
+from wtforms import FileField, StringField
+from wtforms.widgets import HTMLString, html_params
+
 
 class Widget(object):
     '''
@@ -287,3 +294,205 @@ class DropDownMenu(BaseMenu):
     def addItem(self,item:MenuItem):
         item.addClass("dropdown-item")
         super().addItem(item)
+
+
+class LodTable(Widget):
+    """Converts a LOD to a HTML table"""
+
+    def __init__(self, lod: list, headers: dict = None,name=None, indent="", isDatatable:bool=False):
+        """
+
+        Args:
+            lod:
+            headers: mapping form dict keys to the corresponding headers. If none the dict keys will be used instead
+            isDatatable(bool): If true the table will be rendered as a datatable
+            name: name of the table str or Markup that is placed above the table
+        """
+        super(LodTable, self).__init__(indent=indent)
+        self.lod = lod
+        if headers is None and self.lod:
+            headers = {h: h for h in {key for record in lod for key in list(record.keys())}}
+        self.headers = headers
+        self.isDatatable=isDatatable
+        self.id = str(uuid.uuid1())
+        self.name=name
+
+    def render(self):
+        """renders the lod as table"""
+        if not self.lod:
+            return ""
+        if isinstance(self.name, Markup):
+            name=self.name
+        else:
+            name=Markup(f"<h2>{self.name}</h2>")
+        headers = "\n".join([f'<th scope="col">{col}</th>' for col in self.headers.values()])
+        rows = []
+        for d in self.lod:
+            cells = []
+            for col in self.headers.keys():
+                cellValue = d.get(col)
+                cellValue = cellValue if cellValue else ""
+                cells.append(f"<td>{cellValue}</td>")
+            rows.append("<tr>\n" + "\n".join(cells) + "\n</tr>")
+        table = f"""<table id="{self.id}" class="table table-bordered table-hover">
+                      <thead class="thead-light">
+                        <tr>
+                          {headers}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {' '.join(rows)}
+                      </tbody>
+                    </table>"""
+        if self.isDatatable:
+            table +=f"""<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.css">
+                        <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.js"></script>
+                        <script type="text/javascript">
+                        $(document).ready(function() {{
+                            $('#{self.id}').DataTable();
+                        }});
+                        </script>"""
+        return name + Markup(table)
+
+
+class DropZoneField(FileField):
+    """
+    Mimics the behavior of dropzone.create() and dropzone.config() allowing to define the dropzone inside of an
+    flask form.
+    """
+
+    def __init__(self, id:str, url:str=None, dzInfoMsg:str=None,uploadId:str="submit", configParams:dict=None, **kwargs):
+        """
+
+        Important config params:
+           * acceptedFiles: e.g. "image/*,application/pdf,.psd,.ods,.xlsx,text/*"
+
+        Args:
+            id: id of the dropzone field
+            url(str): target of the action. If used in form the file are submitted wwith the form
+            dzInfoMsg(str): Mseeage to be shown as hint how to use the dropzone
+            uploadId(str): id of the button that is used to initiate the upload
+            configParams(dict): Dropzone configuration. Overwrites the default config. see https://docs.dropzone.dev/configuration/basics/configuration-options
+        """
+        self.fieldId=id
+        super(DropZoneField, self).__init__(render_kw={"id":self.fieldId}, **kwargs)
+        if url is None:
+            if request:
+                url=request.url_rule.rule
+        self.url=url
+        if dzInfoMsg is None:
+            dzInfoMsg="Please drop a file or click to select a file."
+        self.dzInfoMsg=dzInfoMsg
+        self.uploadId=uploadId
+        self.config={
+            'url': self.url,
+            'autoProcessQueue': False,
+            'uploadMultiple': True,
+            'parallelUploads': 30,
+            'paramName': self.id,
+            'previewsContainer': f"#{self.fieldId}Field",
+            'maxFilesize': 5,
+            'acceptedFiles': ".ods, .pdf, .xlsx",
+            'maxFiles': 30,
+            'dictDefaultMessage': "Drop files here or click to upload.",
+            'dictFallbackMessage': "Your browser does not support drag'n'drop file uploads.",
+            'dictInvalidFileType': "You can't upload files of this type.",
+            'dictFileTooBig': "File is too big {{filesize}}. Max filesize: {{maxFilesize}}MiB.",
+            'dictResponseError': "Server error: {{statusCode}}",
+            'dictMaxFilesExceeded': "You can't upload any more files.",
+            'dictCancelUpload': "Cancel upload",
+            'dictRemoveFile': "Remove file",
+            'dictCancelUploadConfirmation': "You really want to delete this file?",
+            'dictUploadCanceled': "Upload canceled",
+        }
+        if configParams:
+            for param, value in configParams.items():
+                # overwrite default config
+                self.config[param]=value
+
+    def process_formdata(self, valuelist):
+        """
+        If files are submitted they will be put into the data property
+        """
+        files=[]
+        regex = re.compile(fr"({self.config.get('paramName')})(\[\d+\])?")
+        for fileName, file in request.files.items():
+            if re.match(regex, fileName):
+                files.append(file)
+        self.data=files
+
+    def jsConfig(self):
+        """
+        java script clause configuring the dropzone
+        """
+        configParams={}
+        for param, value in self.config.items():
+            if isinstance(value, bool):
+                if value:
+                    configParams[param]="true"
+                else:
+                    configParams[param]="false"
+            elif isinstance(value, str):
+                configParams[param] = f'"{value}"'
+            else:
+                configParams[param] = value
+        processedParams=[f'{param}: {value}' for param,value in configParams.items()]
+        processedParams.append(f"'headers': {{'X-CSRF-Token': document.getElementById('{self.fieldId}').querySelector('#csrf_token').value }}")
+        configParamsStr=r','.join(processedParams)
+        config=f'''Dropzone.options.{self.fieldId} = {{
+                      init: function() {{
+                            dz = this;                             
+                            document.getElementById('{self.fieldId}').querySelector("#{self.uploadId}").addEventListener("click", function handler(e) {{
+                                e.currentTarget.removeEventListener(e.type, handler);
+                                e.preventDefault();
+                                e.stopPropagation();
+                                dz.processQueue();
+                            }});
+                            this.on("queuecomplete", function(file) {{
+                                document.getElementById('{self.fieldId}').querySelector("#{self.uploadId}").click();
+                            }});
+                            this.on("complete", function(file) {{
+                                this.removeFile(file);
+                            }});
+                      }},
+                       success:function(file, response){{
+                            var newDoc = document.open("text/html", "replace");
+                            newDoc.write(response);
+                            newDoc.close();
+                        }},
+                      { configParamsStr }
+                  }};'''
+
+        return f"<script>{config}</script>"
+
+    def __call__(self, **kwargs):
+        """
+        renders the dropzone to html
+        """
+        setClass = f"<script>document.getElementById('{self.fieldId}Field').parentNode.parentNode.classList.add('dropzone');document.getElementById('{self.fieldId}Field').parentNode.parentNode.id='{self.fieldId}';</script>"
+        return Markup(f'<div class="dropzone-previews" id="{self.fieldId}Field" action="submit"></div> <div class="dz-default dz-message" data-dz-message><span>{self.dzInfoMsg}</span></div>') + Markup(setClass) + Markup(self.jsConfig())
+
+
+
+class ButtonWidget(object):
+    """
+    See https://gist.github.com/doobeh/239b1e4586c7425e5114
+    Renders a multi-line text area.
+    `rows` and `cols` ought to be passed as keyword args when rendering.
+    """
+    input_type = 'button'
+
+    html_params = staticmethod(html_params)
+
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault('id', field.id)
+        kwargs.setdefault('type', self.input_type)
+        if 'value' not in kwargs:
+            kwargs['value'] = field._value()
+        params = self.html_params(name=field.name, **kwargs)
+        label = field.label.text
+        return Markup(f'<button {params}>{label}</button>')
+
+
+class ButtonField(StringField):
+    widget = ButtonWidget()
