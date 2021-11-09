@@ -299,13 +299,14 @@ class DropDownMenu(BaseMenu):
 class LodTable(Widget):
     """Converts a LOD to a HTML table"""
 
-    def __init__(self, lod: list, headers: dict = None, indent="", isDatatable:bool=False):
+    def __init__(self, lod: list, headers: dict = None,name=None, indent="", isDatatable:bool=False):
         """
 
         Args:
             lod:
             headers: mapping form dict keys to the corresponding headers. If none the dict keys will be used instead
             isDatatable(bool): If true the table will be rendered as a datatable
+            name: name of the table str or Markup that is placed above the table
         """
         super(LodTable, self).__init__(indent=indent)
         self.lod = lod
@@ -314,12 +315,16 @@ class LodTable(Widget):
         self.headers = headers
         self.isDatatable=isDatatable
         self.id = str(uuid.uuid1())
+        self.name=name
 
     def render(self):
         """renders the lod as table"""
         if not self.lod:
             return ""
-
+        if isinstance(self.name, Markup):
+            name=self.name
+        else:
+            name=Markup(f"<h2>{self.name}</h2>")
         headers = "\n".join([f'<th scope="col">{col}</th>' for col in self.headers.values()])
         rows = []
         for d in self.lod:
@@ -347,7 +352,7 @@ class LodTable(Widget):
                             $('#{self.id}').DataTable();
                         }});
                         </script>"""
-        return table
+        return name + Markup(table)
 
 
 class DropZoneField(FileField):
@@ -356,7 +361,7 @@ class DropZoneField(FileField):
     flask form.
     """
 
-    def __init__(self, id:str, url:str=None, dzInfoMsg:str=None, configParams:dict=None, **kwargs):
+    def __init__(self, id:str, url:str=None, dzInfoMsg:str=None,uploadId:str="submit", configParams:dict=None, **kwargs):
         """
 
         Important config params:
@@ -366,6 +371,7 @@ class DropZoneField(FileField):
             id: id of the dropzone field
             url(str): target of the action. If used in form the file are submitted wwith the form
             dzInfoMsg(str): Mseeage to be shown as hint how to use the dropzone
+            uploadId(str): id of the button that is used to initiate the upload
             configParams(dict): Dropzone configuration. Overwrites the default config. see https://docs.dropzone.dev/configuration/basics/configuration-options
         """
         self.fieldId=id
@@ -377,6 +383,7 @@ class DropZoneField(FileField):
         if dzInfoMsg is None:
             dzInfoMsg="Please drop a file or click to select a file."
         self.dzInfoMsg=dzInfoMsg
+        self.uploadId=uploadId
         self.config={
             'url': self.url,
             'autoProcessQueue': False,
@@ -435,14 +442,14 @@ class DropZoneField(FileField):
         config=f'''Dropzone.options.{self.fieldId} = {{
                       init: function() {{
                             dz = this;                             
-                            document.getElementById('{self.fieldId}').querySelector("#submit").addEventListener("click", function handler(e) {{
+                            document.getElementById('{self.fieldId}').querySelector("#{self.uploadId}").addEventListener("click", function handler(e) {{
                                 e.currentTarget.removeEventListener(e.type, handler);
                                 e.preventDefault();
                                 e.stopPropagation();
                                 dz.processQueue();
                             }});
                             this.on("queuecomplete", function(file) {{
-                                document.getElementById('{self.fieldId}').querySelector("#submit").click();
+                                document.getElementById('{self.fieldId}').querySelector("#{self.uploadId}").click();
                             }});
                             this.on("complete", function(file) {{
                                 this.removeFile(file);
