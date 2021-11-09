@@ -46,6 +46,7 @@ setup(name='pyFlaskBootstrap4',
           'Flask-Login',
           'Flask-SQLAlchemy',
           'Flask-WTF',
+          'WTForms',
           'SQLAlchemy-Utils',
           'requests',
           'pydevd'
