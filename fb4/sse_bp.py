@@ -20,7 +20,7 @@ class SSE_BluePrint(object):
     '''
     a blueprint for server side events 
     '''
-    def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False,withScheduler=True):
+    def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False,withScheduler=True, baseUrl:str=None):
         '''
         Constructor
         '''
@@ -39,6 +39,7 @@ class SSE_BluePrint(object):
         else:
             self.scheduler=None
         app.register_blueprint(self.blueprint)
+        self.baseUrl=baseUrl
         
         @self.app.route('/sse/<channel>')
         def subscribe(channel):
@@ -392,8 +393,8 @@ class DictStream:
             }};
         </script>"""
         progressMessages = f"""<pre id="{self.sseChannel}"></pre>"""
-        if hasattr(self.sseBl.app, "basedUrl") and callable(self.sseBl.app.basedUrl):
-            sseChannel = self.sseBl.app.basedUrl(f"/sse/{self.sseChannel}")
+        if self.sseBl.baseUrl:
+            sseChannel = f"{self.sseBl.app.basedUrl}/sse/{self.sseChannel}"
         else:
             sseChannel = f"/sse/{self.sseChannel}"
         fillProgressBar = f'<script>showProgressMessages("{self.sseChannel}","{sseChannel}");</script>'

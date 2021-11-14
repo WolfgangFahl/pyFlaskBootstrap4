@@ -125,7 +125,7 @@ class ExampleApp(AppWrap):
         self.csrf = CSRFProtect(self.app)
         self.loginBluePrint=LoginBluePrint(self.app,'login')
         self.loginBluePrint.hint="'try user: scott, password: tiger2021'"
-        self.sseBluePrint=SSE_BluePrint(self.app,'sse')
+        self.sseBluePrint=SSE_BluePrint(self.app,'sse', baseUrl=self.baseUrl)
         app=self.app
         
         #
