@@ -404,7 +404,7 @@ class DictStream:
         </script>"""
         progressMessages = f"""<pre id="{self.sseChannel}"></pre>"""
         if self.sseBl.baseUrl:
-            sseChannel = f"{self.sseBl.app.baseUrl}/sse/{self.sseChannel}"
+            sseChannel = f"{self.sseBl.baseUrl}/sse/{self.sseChannel}"
         else:
             sseChannel = f"/sse/{self.sseChannel}"
         fillProgressBar = f'<script>showProgressMessages("{self.sseChannel}","{sseChannel}");</script>'
