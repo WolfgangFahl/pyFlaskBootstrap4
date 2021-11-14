@@ -9,6 +9,7 @@ import time
 from collections import Generator
 from datetime import datetime, timedelta
 from functools import partial
+from typing import Optional
 
 from flask import Blueprint, Response, request, abort,stream_with_context
 from queue import Queue, Empty
@@ -20,9 +21,18 @@ class SSE_BluePrint(object):
     '''
     a blueprint for server side events 
     '''
+
     def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False,withScheduler=True, baseUrl:str=None):
         '''
         Constructor
+        Args:
+            app(FlaskApp): Flask server app
+            name(str): name of the SSE api
+            template_folder(str): template folder
+            debug(bool): If true debug messages are printed
+            withContext(bool): Send responses with request context
+            withScheduler(bool):
+            baseUrl: url base of the server that needs to added infront of path to the api
         '''
         self.name=name
         self.debug=debug
@@ -394,7 +404,7 @@ class DictStream:
         </script>"""
         progressMessages = f"""<pre id="{self.sseChannel}"></pre>"""
         if self.sseBl.baseUrl:
-            sseChannel = f"{self.sseBl.app.basedUrl}/sse/{self.sseChannel}"
+            sseChannel = f"{self.sseBl.app.baseUrl}/sse/{self.sseChannel}"
         else:
             sseChannel = f"/sse/{self.sseChannel}"
         fillProgressBar = f'<script>showProgressMessages("{self.sseChannel}","{sseChannel}");</script>'
