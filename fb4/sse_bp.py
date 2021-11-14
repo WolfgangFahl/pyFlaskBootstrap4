@@ -392,5 +392,9 @@ class DictStream:
             }};
         </script>"""
         progressMessages = f"""<pre id="{self.sseChannel}"></pre>"""
-        fillProgressBar = f'<script>showProgressMessages("{self.sseChannel}","/sse/{self.sseChannel}");</script>'
+        if hasattr(self.sseBl.app, "basedUrl") and callable(self.sseBl.app.basedUrl):
+            sseChannel = self.sseBl.app.basedUrl(f"/sse/{self.sseChannel}")
+        else:
+            sseChannel = f"/sse/{self.sseChannel}"
+        fillProgressBar = f'<script>showProgressMessages("{self.sseChannel}","{sseChannel}");</script>'
         return script + progressMessages + fillProgressBar

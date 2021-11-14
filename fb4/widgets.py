@@ -386,11 +386,16 @@ class DropZoneField(FileField):
         self.uploadId=uploadId
         self.config={
             'url': self.url,
+            'createImageThumbnails':True,
+            'thumbnailMethod':"contain",
+            'thumbnailWidth':"120px",
+            'thumbnailHeight':"250px",
             'autoProcessQueue': False,
             'uploadMultiple': True,
             'parallelUploads': 30,
             'paramName': self.id,
             'previewsContainer': f"#{self.fieldId}Field",
+            'addRemoveLinks':True,
             'maxFilesize': 5,
             'acceptedFiles': ".ods, .pdf, .xlsx",
             'maxFiles': 30,
@@ -406,9 +411,20 @@ class DropZoneField(FileField):
             'dictUploadCanceled': "Upload canceled",
         }
         if configParams:
+            self.updateConfigParams(**configParams)
+
+    def updateConfigParams(self, **configParams):
+        """
+        Updates the config prams with the given values
+
+        Args:
+            configParams(dict): Dropzone configuration. Overwrites the default config. see https://docs.dropzone.dev/configuration/basics/configuration-options
+
+        """
+        if configParams:
             for param, value in configParams.items():
                 # overwrite default config
-                self.config[param]=value
+                self.config[param] = value
 
     def process_formdata(self, valuelist):
         """
@@ -439,6 +455,17 @@ class DropZoneField(FileField):
         processedParams=[f'{param}: {value}' for param,value in configParams.items()]
         processedParams.append(f"'headers': {{'X-CSRF-Token': document.getElementById('{self.fieldId}').querySelector('#csrf_token').value }}")
         configParamsStr=r','.join(processedParams)
+        thumbnails="""this.on("addedfile", function(file, response) { 
+                       var ext = file.name.split('.').pop().toLowerCase(); 
+                       if (file.type==='application/pdf') { 
+                          this.emit("thumbnail", file, "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/PDF_file_icon.svg/80px-PDF_file_icon.svg.png"); 
+                       } else if (file.type==='doc' || ext==='docx') { 
+                          this.emit("thumbnail", file, "/img/word.png"); 
+                       } else if (file.type==='application/vnd.ms-excel' || file.type==='application/vnd.ms-excel.sheet.macroEnabled.12' || file.type==='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') { 
+                          this.emit("thumbnail", file, "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg/120px-Microsoft_Office_Excel_%282019%E2%80%93present%29.svg.png");
+                       }
+                       });
+                     """
         config=f'''Dropzone.options.{self.fieldId} = {{
                       init: function() {{
                             dz = this;                             
@@ -454,6 +481,7 @@ class DropZoneField(FileField):
                             this.on("complete", function(file) {{
                                 this.removeFile(file);
                             }});
+                            {thumbnails}
                       }},
                        success:function(file, response){{
                             var newDoc = document.open("text/html", "replace");
@@ -469,7 +497,8 @@ class DropZoneField(FileField):
         """
         renders the dropzone to html
         """
-        setClass = f"<script>document.getElementById('{self.fieldId}Field').parentNode.parentNode.classList.add('dropzone');document.getElementById('{self.fieldId}Field').parentNode.parentNode.id='{self.fieldId}';</script>"
+        makeProgresBarTransparent="<style>.dz-progress{background-color:transparent !important;}</style>"  # we only upload on submit → make transparent to show file name
+        setClass = f"<script>document.getElementById('{self.fieldId}Field').parentNode.parentNode.classList.add('dropzone');document.getElementById('{self.fieldId}Field').parentNode.parentNode.id='{self.fieldId}';</script>{makeProgresBarTransparent}"
         return Markup(f'<div class="dropzone-previews" id="{self.fieldId}Field" action="submit"></div> <div class="dz-default dz-message" data-dz-message><span>{self.dzInfoMsg}</span></div>') + Markup(setClass) + Markup(self.jsConfig())
 
 
