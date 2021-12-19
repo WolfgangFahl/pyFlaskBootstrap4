@@ -1,5 +1,5 @@
 from setuptools import setup
-import os 
+import os
 from collections import OrderedDict
 
 try:
@@ -12,7 +12,7 @@ except:
     long_description = open('../../README.md').read()
 
 setup(name='pyFlaskBootstrap4',
-      version='0.2.24',
+      version='0.2.25',
       description='python flask + Bootstrap 4 static components and templates for webprojects',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -40,7 +40,8 @@ setup(name='pyFlaskBootstrap4',
           'fb4': ['templates/sse/*.html'],
       },
       install_requires=[
-          'Bootstrap-Flask',	
+          'Bootstrap-Flask~=1.8.0',
+          'Flask-Dropzone~=1.6.0',	
           'Flask',
           'Flask-HTTPAuth',
           'Flask-Login',
