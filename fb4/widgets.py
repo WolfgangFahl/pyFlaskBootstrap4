@@ -9,12 +9,11 @@ import uuid
 from flask import render_template_string, request, Markup
 import os
 import site
-import sys
 import jinja2
 from xml.dom import minidom
 
 from wtforms import FileField, StringField
-from wtforms.widgets import HTMLString, html_params
+from wtforms.widgets import html_params
 
 
 class Widget(object):
