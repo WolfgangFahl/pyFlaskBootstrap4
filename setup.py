@@ -12,7 +12,7 @@ except:
     long_description = open('../../README.md').read()
 
 setup(name='pyFlaskBootstrap4',
-      version='0.3.0',
+      version='0.3.1',
       description='python flask + Bootstrap 4 static components and templates for webprojects',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -51,6 +51,7 @@ setup(name='pyFlaskBootstrap4',
           'SQLAlchemy-Utils',
           'requests',
           'pydevd',
-          'pyDispatcher'
+          'pyDispatcher',
+          'APScheduler~=3.8.1'
       ],
       zip_safe=False)
