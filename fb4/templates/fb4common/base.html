@@ -1,0 +1,30 @@
+<html lang="en">
+{% from 'bootstrap/nav.html' import render_nav_item %}
+{% from 'bootstrap/utils.html' import render_messages %}
+{% import 'fb4common/macros.html' as macros %}
+  <head>
+{% block header %}
+{{ macros.header(title) }}
+{{ dropzone.load_css() }}
+{% block scripts %}
+    <!-- Optional JavaScript -->
+    {{ bootstrap.load_js() }}
+    {{ dropzone.load_js() }}
+    {{ macros.loadToggleText() }}
+{% endblock %}
+{% endblock header %}
+  </head>
+  <body>
+	<main class="container">
+		{% if menu is not none %}{{ menu|safe }}{%endif %}
+        {{ render_messages(container=False, dismissible=True) }}
+        {% block content %}
+        	{% if content is not none %}{{ content|safe }}{%endif %}
+			{% if error is not none %}<span style="color:red">Error: {{ error }}</span>{%endif %}
+        {% endblock content %}
+    </main>
+{% block footer %}
+{{ macros.footer(copyright) }}
+{% endblock footer%}  
+  </body>
+</html>
