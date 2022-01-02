@@ -135,7 +135,8 @@ debugPort=5678
 remotePath=""
 localPath=""
 sites=""
-baseUrl=""
+host=$(hostname --fqdn)
+baseUrl="http://$host:$port"
 #commandline option
 while [  "$1" != ""  ]
 do
