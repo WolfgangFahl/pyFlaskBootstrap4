@@ -368,40 +368,51 @@ class ExampleApp(AppWrap):
         form = LoginForm()
         return self.render_template('form.html', form=form, telephone_form=TelephoneForm(), contact_form=ContactForm(), im_form=IMForm(), button_form=ButtonForm(), example_form=ExampleForm())
     
+    def uploadFiles(self,files,uploadDirectory):
+        '''
+        upload the given Files
+        '''
+        fileInfo=""
+        delim=""
+        for i,file in enumerate(files):
+            targetFileName=secure_filename(file.filename)
+            if targetFileName=="":
+                targetFileName=f"Test{i}"
+            uploadInfo=self.uploadFile(file, targetFileName, uploadDirectory)
+            fileInfo=f"{fileInfo}{delim}{uploadInfo}"
+            delim=", "
+        return fileInfo
+    
+    def uploadFile(self,file,targetFileName,uploadDirectory):
+        '''
+        upload the given file
+        '''
+        if not os.path.exists(uploadDirectory):
+            os.makedirs(uploadDirectory)
+        if targetFileName is None:
+            targetFileName=secure_filename(file.filename)
+        filePath=f'{uploadDirectory}/{targetFileName}'
+        with open(filePath, 'wb') as f:
+            f.write(file.read())
+        size=os.path.getsize(filePath)
+        fileInfo=f"{file.filename}→{targetFileName}({size})"
+        return fileInfo
+        
     def upload(self):
         '''
         handle the uploading
         '''
         upload_form= UploadForm()
         dropzone_form=DropZoneWidgetForm()
-        filenames=""
-        delim=""
-        if upload_form.validate_on_submit():
-            for file in upload_form.file.data:
-                file_filename = secure_filename(file.filename)
-                if file_filename == "":
-                    file_filename="Test"
-                filePath=f'/tmp/{file_filename}'
-                with open(filePath, 'wb') as f:
-                    f.write(file.read())
-                size=os.path.getsize(filePath)
-                filenames=f"{filenames}{delim}{file_filename}({size})"
-                delim="<br/>"
-            if filenames:
-                flash(Markup(filenames), 'info')
-            filenames=""
+        uploadDirectory="/tmp/uploads"
+        fileInfo=None
+        if upload_form.submit.data and upload_form.validate_on_submit():
+            fileInfo=self.uploadFiles(upload_form.file.data,uploadDirectory=uploadDirectory)
         if dropzone_form.validate_on_submit():
-            for file in dropzone_form.dropzone.data:
-                file_filename = secure_filename(file.filename)
-                if file_filename == "":
-                    file_filename="Test"
-                filePath=f'/tmp/{file_filename}'
-                with open(filePath, 'wb') as f:
-                    f.write(file.read())
-                size=os.path.getsize(filePath)
-                filenames=f"{filenames}{delim}{file_filename}({size})"
-                delim="<br/>"
-                flash(f"File {file_filename} stored under {dropzone_form.fileName.data}")
+            if len(dropzone_form.dropzone.data)>0:
+                fileInfo=self.uploadFile(dropzone_form.dropzone.data[0],targetFileName=dropzone_form.fileName.data,uploadDirectory=uploadDirectory)
+        if fileInfo:
+            flash(f"uploaded {fileInfo}")
         return self.render_template('upload.html',upload_form=upload_form,dropzone_form=dropzone_form)
     
     def getMenu(self):
