@@ -30,29 +30,33 @@ class TestWidgets(unittest.TestCase):
         widgets=[
             Link("http://www.bitplan.com","BITPlan webPage",tooltip="BITPlan GmbH"),
             Image("http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png",alt='BITPlan Logo'),
-            MenuItem("http://test.bitplan.com","BITPlan testSite",True),
+            MenuItem("http://test.bitplan.com","BITPlan testSite",active=True),
             menu,
             dropDownMenu
         ]
         expectedHtml=[
             "<a href='http://www.bitplan.com' title='BITPlan GmbH'>BITPlan webPage</a>",
             "<img src='http://wiki.bitplan.com/images/wiki/thumb/3/38/BITPlanLogoFontLessTransparent.png/132px-BITPlanLogoFontLessTransparent.png' alt='BITPlan Logo'/>",
-            """<li class="nav-item active">
-  <a class="nav-link" href="http://test.bitplan.com">BITPlan testSite</a>
-</li>""",
+            """<!-- BITPlan testSite -->
+<li class="nav-item active">
+  <a class="nav-link" title="BITPlan testSite" href="http://test.bitplan.com">BITPlan testSite</a>
+</li>
+""",
             """<nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
-      <li class="nav-item active">
-        <a class="nav-link" href="http://test.bitplan.com">BITPlan testSite</a>
+      <!-- BITPlan testSite -->
+      <li class="nav-item">
+        <a class="nav-link" title="BITPlan testSite" href="http://test.bitplan.com"><span class='material-icons headerboxicon'>True</span></a>
       </li>
+
     </ul>
   </div>   
 </nav>""",
         """<div class="dropdown nav-item">
     <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
     <div class="dropdown-menu">
-      <a href='http://www.bitplan.com' class="dropdown-item" >BITPlan webPage</a>
+      <a href='http://www.bitplan.com' class="dropdown-item">BITPlan webPage</a>
     </div>
 </div>"""
             ]
@@ -60,7 +64,7 @@ class TestWidgets(unittest.TestCase):
             widget.useFlask=False
             self.assertTrue(isinstance(widget,Widget))
             html=widget.render()
-            self.debug=False
+            #self.debug=True
             if self.debug:
                 print(html)
             self.assertEqual(expectedHtml[i],html)
