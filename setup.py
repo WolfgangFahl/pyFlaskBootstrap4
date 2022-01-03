@@ -12,7 +12,7 @@ except:
     long_description = open('../../README.md').read()
 
 setup(name='pyFlaskBootstrap4',
-      version='0.4.0',
+      version='0.4.1',
       description='python flask + Bootstrap 4 static components and templates for webprojects',
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -42,7 +42,7 @@ setup(name='pyFlaskBootstrap4',
       install_requires=[
           'Bootstrap-Flask~=1.8.0',
           'Flask-Dropzone~=1.6.0',	
-          'Flask~=2.02',
+          'Flask~=2.0.2',
           'Flask-HTTPAuth~=4.5.0',
           'Flask-Login~=0.5.0',
           'Flask-SQLAlchemy~=2.5.1',
