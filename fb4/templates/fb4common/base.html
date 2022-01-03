@@ -15,7 +15,7 @@
 {% endblock header %}
   </head>
   <body>
-	<main class="container">
+	<main class="container-fluid">
 		{% if menu is not none %}{{ menu|safe }}{%endif %}
         {{ render_messages(container=False, dismissible=True) }}
         {% block content %}
