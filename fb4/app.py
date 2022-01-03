@@ -13,6 +13,8 @@ from pydevd_file_utils import setup_client_server_paths
 from flask_bootstrap import Bootstrap
 from flask_dropzone import Dropzone
 from flask_wtf.csrf import CSRFProtect
+from fb4.fb4common_bp import Fb4CommonBluePrint
+from Crypto.SelfTest.Cipher.common import dict
 
 dropzone=None
 class AppWrap:
@@ -20,14 +22,17 @@ class AppWrap:
     Wrapper for Flask Web Application 
     '''
     
-    def __init__(self, host:str='0.0.0.0', port:int=8234, debug:bool=False,template_folder=None):
+    def __init__(self, host:str='0.0.0.0', port:int=8234, debug:bool=False,template_folder:str=None,withFb4Common:bool=True,explainTemplateLoading=False):
         '''
         constructor
         
         Args:
             host(str): flask host
             port(int): the port to use for http connections
-            debug(bool): True if debugging should be switched on
+            debug(bool): if True debugging should be switched on
+            template_folder(str): the template folder to be used
+            withFb4Common(bool): if True fb4common should be made available
+            explainTemplateLoading(bool): if True the template loading should be explained/debugged
         '''
         self.debug = debug
         self.port = port
@@ -44,17 +49,36 @@ class AppWrap:
         self.auth= HTTPBasicAuth()
         self.baseUrl=""
         self.bootstrap = Bootstrap(self.app)
+        secretKey= os.urandom(32)
+        for key,value in self.getAppConfig(explainTemplateLoading=explainTemplateLoading,secretKey=secretKey).items():
+            self.app.config[key]=value
+        if withFb4Common:
+            self.fb4CommonBluePrint=Fb4CommonBluePrint(self.app,'fb4common')
+        self.csrf = CSRFProtect(self.app)
+        
+    def getAppConfig(self,explainTemplateLoading:bool=False,secretKey=None)->dict:
+        '''
+        get the application Configuration
+        
+        Args:
+            explainTemplateLoading(bool): if True debug the templateLoading process
+            secretKey(int): the secretKey to be used
+        '''
+        config={}
+        # https://flask.palletsprojects.com/en/2.0.x/config/#EXPLAIN_TEMPLATE_LOADING
+        self.app.config['EXPLAIN_TEMPLATE_LOADING']=explainTemplateLoading
+        if secretKey is None:
+            secretKey= os.urandom(32)
+        self.app.config['SECRET_KEY'] = secretKey
+        self.app.config['WTF_CSRF_ENABLED'] = True
+        # enable CSRF protection
+        self.app.config['DROPZONE_ENABLE_CSRF'] = True
         # should be configurable again
         self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         # set default bootstrap button style and size
         self.app.config['BOOTSTRAP_BTN_STYLE'] = 'primary'
         self.app.config['BOOTSTRAP_BTN_SIZE'] = 'sm'
-        SECRET_KEY = os.urandom(32)
-        self.app.config['SECRET_KEY'] = SECRET_KEY
-        self.app.config['WTF_CSRF_ENABLED'] = True
-        # enable CSRF protection
-        self.app.config['DROPZONE_ENABLE_CSRF'] = True
-        self.csrf = CSRFProtect(self.app)
+        return config
         
         
     def addTemplatePath(self,path):
