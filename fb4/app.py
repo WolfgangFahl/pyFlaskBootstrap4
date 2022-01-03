@@ -14,7 +14,6 @@ from flask_bootstrap import Bootstrap
 from flask_dropzone import Dropzone
 from flask_wtf.csrf import CSRFProtect
 from fb4.fb4common_bp import Fb4CommonBluePrint
-from Crypto.SelfTest.Cipher.common import dict
 
 dropzone=None
 class AppWrap:
