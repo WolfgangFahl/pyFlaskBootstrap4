@@ -128,7 +128,7 @@ class ExampleApp(AppWrap):
         self.loginBluePrint=LoginBluePrint(self.app,'login')
         self.loginBluePrint.hint="'try user: scott, password: tiger2021'"
         self.sseBluePrint=SSE_BluePrint(self.app,'sse', appWrap=self)
-        self.icons=IconsBlueprint(self.app, "icons")
+        self.icons=IconsBlueprint(self.app, "icons", appWrap=self)
         app=self.app
         link1=Link("http://greyli.com/",title="Grey Li")
         link2=Link("http://www.bitplan.com/Wolfgang_Fahl",title="Wolfgang Fahl")
@@ -548,7 +548,7 @@ class ExampleApp(AppWrap):
         dictList=[]
         for icon in icons:
             dictList.append(icon.asDict())
-        lodKeys=dictList[0].keys()
+        lodKeys={d.keys() for d in dictList[:1]}
         return self.render_template('datatable.html',listOfDicts=dictList,lodKeys=lodKeys,tableHeaders=lodKeys)
     
     def table(self):

@@ -1,5 +1,6 @@
 import mimetypes
 import os
+from typing import Callable
 
 from flask import Blueprint, send_file
 from markupsafe import Markup
@@ -11,7 +12,7 @@ class IconsBlueprint(object):
     https://icons.getbootstrap.com/#icons
     """
 
-    def __init__(self, app, name:str, template_folder: str = None):
+    def __init__(self, app, name:str, template_folder: str = None, appWrap=None):
         '''
         construct me
 
@@ -27,6 +28,7 @@ class IconsBlueprint(object):
             self.template_folder = 'templates'
         self.blueprint = Blueprint(name, __name__, template_folder=self.template_folder)
         self.app = app
+        self.appWrap=appWrap
         self.bootstrapIconsPath=os.path.join('bootstrap-icons', 'bootstrap-icons-1.7.2')
         app.register_blueprint(self.blueprint)
 
@@ -54,4 +56,7 @@ class IconsBlueprint(object):
             return send_file(icon_path, mimetype=mimetype)
 
     def loadBootstrapIconCSS(self):
-            return Markup('<link rel="stylesheet" href="/assets/img/bootstrap-icons.css">')  #ToDo: Adjust to basedUrl
+        url="/assets/img/bootstrap-icons.css"
+        if hasattr(self.appWrap, "basedUrl") and isinstance(self.appWrap.basedUrl, Callable):
+            url=self.appWrap.basedUrl(url)
+        return Markup(f'<link rel="stylesheet" href="{url}">')
