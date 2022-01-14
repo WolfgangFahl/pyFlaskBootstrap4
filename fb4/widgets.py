@@ -9,12 +9,11 @@ import uuid
 from flask import render_template_string, request, Markup
 import os
 import site
-import sys
 import jinja2
 from xml.dom import minidom
 
 from wtforms import FileField, StringField
-from wtforms.widgets import HTMLString, html_params
+from wtforms.widgets import html_params
 
 
 class Widget(object):
@@ -22,6 +21,14 @@ class Widget(object):
     a HTML widget
     '''
     def __init__(self,indent="",userdata=None,useFlask=True):
+        '''
+        construct me
+        
+        Args:
+            indent(str): the indentation to use
+            userdata(object): user specific data (if any)
+            useFlask(bool): if True use Flask to render otherwise directly use the Jinja2 template engine
+        '''
         self.indent=indent
         self.classes=[]
         self.useFlask=useFlask
@@ -32,16 +39,25 @@ class Widget(object):
         pass
     
     def addClass(self,clazz):
+        '''
+        add the given class attribute to my classes
+        
+        Args:
+            clazz(str): the html class attribute to add
+        '''
         self.classes.append(clazz)
         
     def getClass(self):
         '''
-        get the class attribute for this widget
+        get the class attribute(s) for this widget
         '''
         classAttr=' class="%s"' % ' '.join(self.classes) if len(self.classes) else ""
         return classAttr
     
     def __str__(self):
+        '''
+        my string representation
+        '''
         html=self.render()
         return html
     
@@ -69,7 +85,7 @@ class Link(Widget):
     '''
     a HTML link
     '''
-    def __init__(self,url,title=None,tooltip=None,indent=""):
+    def __init__(self,url,title=None,tooltip=None,indent="",newTab=False):
         '''
         constructor
         
@@ -77,14 +93,19 @@ class Link(Widget):
             url(str):  the link 
             title(str): the title
             tooltip(str): the tooltip (if any)
+            newTab(bool): if True open the link in a newTab
         '''
         super().__init__(indent=indent)
         self.url=url
         self.title="" if title is None else title
-        self.tooltip="title='%s'" % tooltip if tooltip is not None else ""
+        self.tooltip=f" title='{tooltip}'" if tooltip is not None else ""
+        self.target=f" target='_blank'" if newTab else ""
         
     def render(self):
-        html="%s<a href='%s'%s %s>%s</a>" % (self.indent,self.url,self.getClass(),self.tooltip,self.title)
+        '''
+        render a Link
+        '''
+        html=f"{self.indent}<a href='{self.url}'{self.getClass()}{self.tooltip}{self.target}>{self.title}</a>"
         return html
         
 class Image(Widget):
@@ -189,28 +210,51 @@ class Icon(Widget):
 {%% from 'bootstrap/utils.html' import render_icon %%}        
 {{ render_icon('%s', %s,'%s') }}""" % (self.name,self.size,self.color)
         html=self.render_template_string(template)
-        return html    
+        return html   
+    
+class Copyright(Widget): 
+    '''
+    a copyright hint nav item to be shown e.g. in the footer
+    
+    '''
+    def __init__(self,period,link:str,indent=""):
+        super().__init__(indent=indent)
+        self.period=period
+        self.link=link
+        pass
+    
+    def render(self):
+        html=f"""{self.indent}<nav>
+{self.indent}  <span class='copyright'>© {self.period}&nbsp;
+           {self.link}&nbsp;All Rights reserved.
+{self.indent}  </span>
+{self.indent}</nav>"""
+        return html
     
 class MenuItem(Widget):
     '''
     a menu item
     '''
     
-    def __init__(self,url:str,title:str,active:bool=False,indent=""):
+    def __init__(self,url:str,title:str,mdiIcon=None,active:bool=False,indent="",newTab=False):
         '''
         constructor
         
         Args:
             url(str):  the link
             title(str): the title of the menu item
+            mdiIcon(str): the name of the material Design Icon to be used
             active(bool): whether the link is initially active 
+            newTab(bool): whether the link should be opened in a new tab
         '''
         super().__init__(indent=indent)
         self.url=url
         self.title=title
+        self.mdiIcon=mdiIcon
         self.active=active
         self.addClass("nav-item")
         if active: self.addClass("active")
+        self.target=f' target="_blank"' if newTab else ''
     
     def render(self):
         '''
@@ -219,9 +263,14 @@ class MenuItem(Widget):
         Returns:
             str: html code for MenuItem
         '''
-        html='''%s<li%s>
-%s  <a class="nav-link" href="%s">%s</a>
-%s</li>''' % (self.indent,self.getClass(),self.indent,self.url,self.title,self.indent)
+        content=self.title
+        if self.mdiIcon:
+            content=f"<span class='material-icons headerboxicon'>{self.mdiIcon}</span>"
+        html=f'''{self.indent}<!-- {self.title} -->
+{self.indent}<li{self.getClass()}>
+{self.indent}  <a class="nav-link" title="{self.title}" href="{self.url}"{self.target}>{content}</a>
+{self.indent}</li>
+'''
         return html
     
 class BaseMenu(Widget):

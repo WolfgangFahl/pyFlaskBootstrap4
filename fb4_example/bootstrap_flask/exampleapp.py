@@ -6,8 +6,9 @@ from fb4.icons_bp import IconsBlueprint
 from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
+from flask_login import current_user, login_required
 from fb4.sse_bp import SSE_BluePrint
-from fb4.widgets import Link, Icon, Image, Menu, MenuItem, DropDownMenu, LodTable, DropZoneField, ButtonField
+from fb4.widgets import Copyright,Link, Icon, Image, Menu, MenuItem, DropDownMenu, LodTable, DropZoneField, ButtonField
 from flask import redirect,render_template, request, flash, Markup, url_for, abort
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import BooleanField, DateField, DateTimeField, FieldList, FileField, \
@@ -129,7 +130,11 @@ class ExampleApp(AppWrap):
         self.sseBluePrint=SSE_BluePrint(self.app,'sse', appWrap=self)
         self.icons=IconsBlueprint(self.app, "icons")
         app=self.app
-        
+        link1=Link("http://greyli.com/",title="Grey Li")
+        link2=Link("http://www.bitplan.com/Wolfgang_Fahl",title="Wolfgang Fahl")
+        link=f"{link1}→{link2}"
+        self.copyRight=Copyright(period="2018-2022",link=link)
+
         #
         # setup global handlers
         #
@@ -159,11 +164,7 @@ class ExampleApp(AppWrap):
         @app.route('/pagination', methods=['GET', 'POST'])
         def test_pagination():
             return self.pagination()
-        
-        @app.route('/static', methods=['GET', 'POST'])
-        def test_static():
-            return self.static()
-        
+
         @app.route('/startsse1', methods=['POST'])
         def test_startSSE1():
             return self.startSSE1()
@@ -203,7 +204,7 @@ class ExampleApp(AppWrap):
         @app.route('/bootstrapicons')
         def test_bootstrapIcons():
             return self.bootstrapIcons()
-        
+
         @app.route('/ping',methods=['GET', 'POST'])
         def test_ping():
             return self.ping()
@@ -342,9 +343,18 @@ class ExampleApp(AppWrap):
     def eventExample(self):
         gen = ({"id": i, "data": str(uuid.uuid1())} for i in range(150))
         generator = self.sseBluePrint.streamDictGenerator(gen, slowdown=1)
-        return render_template("event.html", dictStreamdemo=generator)
-        
+        return self.render_template("event.html", dictStreamdemo=generator)
+
+    def render_template(self,templateName,**kwArgs):
+        '''
+        render the given template with the default arguments
+        '''
+        html=render_template(templateName,menu=self.getMenu(),copyright=self.copyRight,**kwArgs)
+        return html
+
     def flash(self):
+        '''
+        '''
         flash('A simple default alert—check it out!')
         flash('A simple primary alert—check it out!', 'primary')
         flash('A simple secondary alert—check it out!', 'secondary')
@@ -355,77 +365,108 @@ class ExampleApp(AppWrap):
         flash('A simple light alert—check it out!', 'light')
         flash('A simple dark alert—check it out!', 'dark')
         flash(Markup('A simple success alert with <a href="#" class="alert-link">an example link</a>. Give it a click if you like.'), 'success')
-        return render_template('flash.html')       
+        return self.render_template('flash.html')
     
     def form(self):
+        '''
+        form handling
+        '''
         form = LoginForm()
-        return render_template('form.html', form=form, telephone_form=TelephoneForm(), contact_form=ContactForm(), im_form=IMForm(), button_form=ButtonForm(), example_form=ExampleForm())
+        return self.render_template('form.html', form=form, telephone_form=TelephoneForm(), contact_form=ContactForm(), im_form=IMForm(), button_form=ButtonForm(), example_form=ExampleForm())
     
+    def uploadFiles(self,files,uploadDirectory):
+        '''
+        upload the given Files
+        '''
+        fileInfo=""
+        delim=""
+        for i,file in enumerate(files):
+            targetFileName=secure_filename(file.filename)
+            if targetFileName=="":
+                targetFileName=f"Test{i}"
+            uploadInfo=self.uploadFile(file, targetFileName, uploadDirectory)
+            fileInfo=f"{fileInfo}{delim}{uploadInfo}"
+            delim=", "
+        return fileInfo
+
+    def uploadFile(self,file,targetFileName,uploadDirectory):
+        '''
+        upload the given file
+        '''
+        if not os.path.exists(uploadDirectory):
+            os.makedirs(uploadDirectory)
+        if targetFileName is None:
+            targetFileName=secure_filename(file.filename)
+        filePath=f'{uploadDirectory}/{targetFileName}'
+        with open(filePath, 'wb') as f:
+            f.write(file.read())
+        size=os.path.getsize(filePath)
+        fileInfo=f"{file.filename}→{targetFileName}({size})"
+        return fileInfo
+
     def upload(self):
         '''
         handle the uploading
         '''
         upload_form= UploadForm()
         dropzone_form=DropZoneWidgetForm()
-        filenames=""
-        delim=""
-        if upload_form.validate_on_submit():
-            for file in upload_form.file.data:
-                file_filename = secure_filename(file.filename)
-                if file_filename == "":
-                    file_filename="Test"
-                filePath=f'/tmp/{file_filename}'
-                with open(filePath, 'wb') as f:
-                    f.write(file.read())
-                size=os.path.getsize(filePath)
-                filenames=f"{filenames}{delim}{file_filename}({size})"
-                delim="<br/>"
-            if filenames:
-                flash(Markup(filenames), 'info')
-            filenames=""
+        uploadDirectory="/tmp/uploads"
+        fileInfo=None
+        if upload_form.submit.data and upload_form.validate_on_submit():
+            fileInfo=self.uploadFiles(upload_form.file.data,uploadDirectory=uploadDirectory)
         if dropzone_form.validate_on_submit():
-            for file in dropzone_form.dropzone.data:
-                file_filename = secure_filename(file.filename)
-                if file_filename == "":
-                    file_filename="Test"
-                filePath=f'/tmp/{file_filename}'
-                with open(filePath, 'wb') as f:
-                    f.write(file.read())
-                size=os.path.getsize(filePath)
-                filenames=f"{filenames}{delim}{file_filename}({size})"
-                delim="<br/>"
-                flash(f"File {file_filename} stored under {dropzone_form.fileName.data}")
-        return render_template('upload.html',upload_form=upload_form,dropzone_form=dropzone_form)
+            if len(dropzone_form.dropzone.data)>0:
+                fileInfo=self.uploadFile(dropzone_form.dropzone.data[0],targetFileName=dropzone_form.fileName.data,uploadDirectory=uploadDirectory)
+        if fileInfo:
+            flash(f"uploaded {fileInfo}")
+        return self.render_template('upload.html',upload_form=upload_form,dropzone_form=dropzone_form)
     
     def getMenu(self):
+        '''
+        get the Menu
+        '''
         menu=Menu()
-        for menuLink in self.getMenuLinks():
-            menu.addItem(MenuItem(menuLink.url,menuLink.title))
+        for endpoint,title,mdiIcon,newTab in self.getMenuEntries():
+            menu.addItem(MenuItem(self.basedUrl(url_for(endpoint)),title=title,mdiIcon=mdiIcon,newTab=newTab))
+        menu.addItem(MenuItem("https://bootstrap-flask.readthedocs.io/",title="Documentation",mdiIcon="description",newTab=True))
+        menu.addItem(MenuItem("https://github.com/greyli/bootstrap-flask",title="greyli",newTab=True))
+        menu.addItem(MenuItem("https://github.com/WolfgangFahl/pyFlaskBootstrap4",title="github",newTab=True))
+        if current_user.is_anonymous:
+            menu.addItem(MenuItem('/login','login',mdiIcon="login"))
+        else:
+            menu.addItem(MenuItem('/logout','logout',mdiIcon="logout"))
         return menu
-     
-    def getMenuLinks(self):
-        links=[
-            Link( url_for('test_form'),"Form"),
-            Link( url_for('test_upload'),"Upload"),
-            Link( url_for('test_nav'),"Nav"),
-            Link( url_for('test_pagination'),"Pagination"),
-            Link( url_for('test_ping'),"Ping"),
-            Link( url_for('test_events'),"Events"),
-            Link( url_for('test_static'),"Static"),
-            Link( url_for('test_flash'),"Flash Messages"),
-            Link( url_for('test_table'),"Table"),
-            Link( url_for('test_datatable'),"DataTable"),
-            Link( url_for('test_icon'),"Icon"),
-            Link( url_for('test_widgets'),"Widgets")
+
+    def getMenuEntries(self):
+        entries=  [
+              ('index',"Home","home",False),
+              ('test_form',"Form","list_alt",False),
+              ('test_upload',"Upload","upload_file",False),
+              ('test_nav',"Nav","navigation",False),
+              ('test_pagination',"Pagination","swap_horizontal_circle",False),
+              ('test_ping',"Ping","sensors",False),
+              ('test_events',"Events","priority_high",False),
+              ('test_flash',"Flash Messages","flash_on",False),
+              ('test_table',"Table","table_chart",False),
+              ('test_datatable',"DataTable","table_rows",False),
+              ('test_icon',"Icon","insert_emoticon",False),
+              ('test_widgets',"Widgets","widgets",False),
+              ('test_bootstrapIcons',"Bootstrap Icons", "web_asset",False)
         ]
+        return entries
+
+    def getMenuLinks(self):
+        links=[]
+        for endpoint,title,_mdiIcon,newTab in self.getMenuEntries():
+            links.append(Link(self.basedUrl(url_for(endpoint)),title=title,newTab=newTab))
         return links
          
     def home(self):
         menuLinks=self.getMenuLinks()
-        return render_template('index.html',menuLinks=menuLinks)
+        return self.render_template('index.html',menuLinks=menuLinks)
     
     def icon(self):
-        return render_template('icon.html')
+        return self.render_template('icon.html')
 
     def message_delete(self,message_id):    
         message = Message.query.get(message_id)
@@ -450,7 +491,7 @@ class ExampleApp(AppWrap):
         return f'Could not view message {message_id} as it does not exist. Return to <a href="/table">table</a>.'
 
     def nav(self):
-        return render_template('nav.html')
+        return self.render_template('nav.html')
   
     def pagination(self):
         '''
@@ -481,7 +522,7 @@ class ExampleApp(AppWrap):
             pagination = BootstrapIcon.query.paginate(page, per_page=per_page)
             icons = pagination.items
         displayIcons=self.getDisplayIcons(icons)
-        return render_template('pagination.html', form=search_form,pagination=pagination, icons=displayIcons)
+        return self.render_template('pagination.html', form=search_form,pagination=pagination, icons=displayIcons)
 
     def ping(self):
         '''
@@ -497,13 +538,7 @@ class ExampleApp(AppWrap):
             pass
         else:
             ping_form.pingState=""
-        return render_template('ping.html',ping_form=ping_form)
-    
-    def static(self):
-        '''
-        test static content
-        '''
-        return render_template('static.html')
+        return self.render_template('ping.html',ping_form=ping_form)
     
     def datatable(self):
         '''
@@ -513,7 +548,8 @@ class ExampleApp(AppWrap):
         dictList=[]
         for icon in icons:
             dictList.append(icon.asDict())
-        return render_template('datatable.html',listOfDicts=dictList)
+        lodKeys=dictList[0].keys()
+        return self.render_template('datatable.html',listOfDicts=dictList,lodKeys=lodKeys,tableHeaders=lodKeys)
     
     def table(self):
         '''
@@ -523,7 +559,7 @@ class ExampleApp(AppWrap):
         pagination = Message.query.paginate(page, per_page=10)
         messages = pagination.items
         titles = [('id', '#'), ('text', 'Message'), ('author', 'Author'), ('category', 'Category'), ('draft', 'Draft'), ('create_time', 'Create Time')]
-        return render_template('table.html', messages=messages, titles=titles)
+        return self.render_template('table.html', messages=messages, titles=titles)
 
     def widgets(self):
         '''
@@ -541,17 +577,18 @@ class ExampleApp(AppWrap):
         menu.addItem(MenuItem("https://github.com/WolfgangFahl/pyFlaskBootstrap4","github",))
         menu.addItem(dropDownMenu)
 
-        lodDataGenerator=lambda n: [{'text':f'Text messaage {i}', 'author': f"Author {i}", "Category":f"Category {i}", "create time":datetime.now()+timedelta(days=i)} for i in range(n)]
+        lodDataGenerator=lambda n: [{'text':f'Text message {i}', 'author': f"Author {i}", "Category":f"Category {i}", "create time":datetime.now()+timedelta(days=i)} for i in range(n)]
         lodTable=LodTable(lodDataGenerator(5))
         lodDataTable=LodTable(lodDataGenerator(500), isDatatable=True)
 
         widgetList=[
             [
-                Link("https://github.com/WolfgangFahl/pyFlaskBootstrap4","pyFlaskBootstrap4","Extended Flask + Bootstrap4 Library"),
-                Link("http://wiki.bitplan.com/index.php/PyFlaskBootstrap4","Wiki","pyFlaskBootstrap4 wiki"),
-                Link("https://github.com/greyli/bootstrap-flask","bootstrap-flask","Flask + Bootstrap4 Library by Grey Li"),
-                Link("https://palletsprojects.com/p/flask/","flask","web application framework"),
-                Link("https://getbootstrap.com/","bootstrap","Open source web toolkit")
+                Link("https://github.com/WolfgangFahl/pyFlaskBootstrap4","pyFlaskBootstrap4","Extended Flask + Bootstrap4 Library",newTab=True),
+                Link("http://wiki.bitplan.com/index.php/PyFlaskBootstrap4","Wiki","pyFlaskBootstrap4 wiki",newTab=True),
+                Link("https://github.com/greyli/bootstrap-flask","bootstrap-flask","Flask + Bootstrap4 Library by Grey Li",newTab=True),
+                Link("https://palletsprojects.com/p/flask/","flask","web application framework",newTab=True),
+                Link("https://getbootstrap.com/","bootstrap","Open source web toolkit",newTab=True),
+                Link("https://fonts.google.com/icons","Google material icons",newTab=True)
             ],
             [
                 Image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/299px-Tux.svg.png",alt="Tux",height=150,title='Tux - the Linux kernel penguin mascot'),
@@ -576,13 +613,13 @@ class ExampleApp(AppWrap):
             ]
             
         ]
-        return render_template('widgets.html',widgetList=widgetList)
+        return self.render_template('widgets.html',widgetList=widgetList)
 
     def bootstrapIcons(self):
         """
         returns index page of Bootstrap Icons displaying a table of all available icons
         """
-        return render_template('bootstrapIcons.html')
+        return self.render_template('bootstrapIcons.html')
     
 # initialization of flask globals
 # we can't help that these are needed and can't be wrapped

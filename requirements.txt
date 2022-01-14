@@ -1,22 +1,22 @@
 # web server
 # https://pypi.org/project/Flask/
-Flask
+Flask~=2.0.2
 # https://pypi.org/project/Bootstrap-Flask/
-Bootstrap-Flask>=1.8.0
+Bootstrap-Flask~=1.8.0
 # https://github.com/greyli/flask-dropzone
-Flask-Dropzone
+Flask-Dropzone~=1.6.0
 #https://pypi.org/project/Flask-Login/
-Flask-Login
+Flask-Login~=0.5.0
 # https://pypi.org/project/Flask-HTTPAuth/
 Flask-HTTPAuth
 # https://pypi.org/project/Flask-SQLAlchemy/
-Flask-SQLAlchemy
+Flask-SQLAlchemy~=2.5.1
 # https://pypi.org/project/SQLAlchemy-Utils/
 SQLAlchemy-Utils
 # https://pypi.org/project/Flask-WTF/
-Flask-WTF
+Flask-WTF~=1.0.0
 # https://pypi.org/project/WTForms
-WTForms==2.3.3
+WTForms~=3.0.0
 # requests (for forwarding)
 # https://pypi.org/project/requests/
 requests
@@ -26,4 +26,4 @@ pydevd
 # http://pydispatcher.sourceforge.net/
 PyDispatcher
 # https://pypi.org/project/APScheduler/
-APScheduler>=3.8.1
+APScheduler~=3.8.1
