@@ -9,9 +9,7 @@ import time
 from collections import Generator
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Optional
-
-from flask import Blueprint, Response, request, abort,stream_with_context
+from flask import Blueprint, Response, request, abort, stream_with_context, send_file
 from queue import Queue, Empty
 from pydispatch import dispatcher
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -22,7 +20,7 @@ class SSE_BluePrint(object):
     a blueprint for server side events 
     '''
 
-    def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False,withScheduler=True, baseUrl:str=None):
+    def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False,withScheduler=True, appWrap=None):
         '''
         Constructor
         Args:
@@ -32,7 +30,7 @@ class SSE_BluePrint(object):
             debug(bool): If true debug messages are printed
             withContext(bool): Send responses with request context
             withScheduler(bool):
-            baseUrl: url base of the server that needs to added infront of path to the api
+            appWrap: appWrap with additional context for the app
         '''
         self.name=name
         self.debug=debug
@@ -43,19 +41,34 @@ class SSE_BluePrint(object):
             self.template_folder='templates'    
         self.blueprint=Blueprint(name,__name__,template_folder=self.template_folder)
         self.app=app
+        self.appWrap=appWrap
         if withScheduler:
             self.scheduler=BackgroundScheduler()
             self.scheduler.start()
         else:
             self.scheduler=None
         app.register_blueprint(self.blueprint)
-        self.baseUrl=baseUrl
+
+        @self.app.route('/sse/file/<id>')
+        def retrieveFile(id):
+            fileGen=PubSub.subscribe(id,1)
+            file=next(fileGen)
+            PubSub.close(id)
+            if isinstance(file, io.BytesIO):
+                mimeType= mimetypes.guess_type(file.name)
+                return send_file(file, as_attachment=True, attachment_filename=file.name, mimetype=mimeType[0])
         
         @self.app.route('/sse/<channel>')
         def subscribe(channel):
             def events():
                 return PubSub.subscribe(channel)
             return self.streamGen(events())
+
+    @property
+    def baseUrl(self):
+        if self.appWrap is not None:
+            return getattr(self.app, "baseUrl", None)
+        return None
                 
     def streamSSE(self,ssegenerator): 
         '''
