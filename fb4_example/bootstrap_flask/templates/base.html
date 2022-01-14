@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>pyFlaskBootstrap4 Demo Application</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/assets/img/bootstrap-icons.css">
     {{ bootstrap.load_css() }}
     {{ dropzone.load_css() }}
     {% block scripts %}
@@ -34,9 +35,10 @@
                 {{ render_nav_item('test_datatable', 'DataTable', use_li=True) }}
                 {{ render_nav_item('test_icon', 'Icon', use_li=True) }}
                 {{ render_nav_item('test_widgets', 'Widgets', use_li=True) }}
+                {{ render_nav_item('test_bootstrapIcons', 'Bootstrap Icons', use_li=True) }}
                 <li class="nav-item"><a class="nav-link" href="https://bootstrap-flask.readthedocs.io/" target="_blank">Documentation</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/greyli/bootstrap-flask" target="_blank">GitHub</a></li>
-                <li class="nav-item"><a class="nav-link" href="https://github.com/WolfgangFahl/pyFlaskBootstrap4" target="_blank">GitHub Extended</a></li>
+                <li class="nav-item"><a class="nav-link" href="https://github.com/greyli/bootstrap-flask" target="_blank"><i class="bi-github">GitHub</i></a></li>
+                <li class="nav-item"><a class="nav-link" href="https://github.com/WolfgangFahl/pyFlaskBootstrap4" target="_blank"><i class="bi-github">GitHub Extended</i></a></li>
                 {% if current_user.is_anonymous %}
                 {{ render_nav_item('login', 'Login', use_li=True) }}
                 {% else %}

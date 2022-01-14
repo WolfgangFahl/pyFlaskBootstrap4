@@ -2,6 +2,7 @@
 import uuid
 
 from fb4.app import AppWrap
+from fb4.icons_bp import IconsBlueprint
 from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
@@ -125,7 +126,8 @@ class ExampleApp(AppWrap):
         self.csrf = CSRFProtect(self.app)
         self.loginBluePrint=LoginBluePrint(self.app,'login')
         self.loginBluePrint.hint="'try user: scott, password: tiger2021'"
-        self.sseBluePrint=SSE_BluePrint(self.app,'sse', baseUrl=self.baseUrl)
+        self.sseBluePrint=SSE_BluePrint(self.app,'sse', appWrap=self)
+        self.icons=IconsBlueprint(self.app, "icons")
         app=self.app
         
         #
@@ -197,6 +199,10 @@ class ExampleApp(AppWrap):
         @app.route('/widgets', methods=['GET', 'POST'])
         def test_widgets():
             return self.widgets()
+
+        @app.route('/bootstrapicons')
+        def test_bootstrapIcons():
+            return self.bootstrapIcons()
         
         @app.route('/ping',methods=['GET', 'POST'])
         def test_ping():
@@ -571,6 +577,12 @@ class ExampleApp(AppWrap):
             
         ]
         return render_template('widgets.html',widgetList=widgetList)
+
+    def bootstrapIcons(self):
+        """
+        returns index page of Bootstrap Icons displaying a table of all available icons
+        """
+        return render_template('bootstrapIcons.html')
     
 # initialization of flask globals
 # we can't help that these are needed and can't be wrapped

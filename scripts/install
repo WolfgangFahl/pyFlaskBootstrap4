@@ -46,3 +46,226 @@ then
    echo "creating user-config.py"
    echo "put_throttle = 0" > $HOME/.pywikibot/user-config.py
 fi
+
+
+scriptdir=$(dirname $0)
+
+#ansi colors
+#http://www.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
+blue='\033[0;34m'
+red='\033[0;31m'
+green='\033[0;32m' # '\e[1;32m' is too bright for white bg.
+endColor='\033[0m'
+
+#
+# a colored message
+#   params:
+#     1: l_color - the color of the message
+#     2: l_msg - the message to display
+#
+color_msg() {
+  local l_color="$1"
+  local l_msg="$2"
+  echo -e "${l_color}$l_msg${endColor}"
+}
+
+# error
+#
+#   show an error message and exit
+#
+#   params:
+#     1: l_msg - the message to display
+error() {
+  local l_msg="$1"
+  # use ansi red for error
+  color_msg $red "Error: $l_msg" 1>&2
+  exit 1
+}
+#
+# show the usage
+#
+usage() {
+  echo "usage: $0 [-h]"
+  echo "  -h: show this usage"
+  exit 1
+}
+
+
+#
+# autoinstall
+#
+#  check that l_prog is available by calling which
+#  if not available install from given package depending on Operating system
+#
+#  params:
+#    1: l_prog: The program that shall be checked
+#    2: l_linuxpackage: The apt-package to install from
+#    3: l_macospackage: The MacPorts package to install from
+#
+autoinstall() {
+  local l_prog=$1
+  local l_linuxpackage=$2
+  local l_macospackage=$3
+  os=`uname`
+  color_msg $green "checking that $l_prog  is installed on os $os ..."
+  which $l_prog
+  if [ $? -eq 1 ]
+  then
+    case $os in
+      # Mac OS
+      Darwin)
+        which port >/dev/null
+        if [ $? -eq 0 ]
+        then
+          color_msg $blue "installing $l_prog from MacPorts package $l_macospackage"
+          sudo port install $l_macospackage
+        else
+          which brew >/dev/null
+          if [ $? -eq 0 ]
+          then
+            color_msg $blue "installing $l_prog from Homebrew package $l_macospackage"
+            sudo brew install $l_macospackage
+          else
+            error "python3 and pip3 are needed and neither Homebrew nor MacPorts are available for installation. \nYou might want to install the prerequisites yourself"
+          fi
+        fi
+      ;;
+      # e.g. Ubuntu/Fedora/Debian/Suse
+      Linux)
+        color_msg $blue "installing $l_prog from apt-package $l_linuxpackage"
+        sudo apt-get install $l_linuxpackage
+      ;;
+      # git bash (Windows)
+      MINGW32_NT-6.1)
+        error "$l_prog ist not installed"
+      ;;
+      *)
+        error "unknown operating system $os"
+    esac
+  fi
+}
+
+# download outputfile from the given url
+# param 1: url
+# param 2: outputfile
+download() {
+  local l_url="$1"
+  local l_output="$2"
+  local l_status=$(curl -Is "$l_url" | head -n 1 | tr -d '\r')
+  echo $l_status | grep -E "200|302" > /dev/null
+  if [ $? -ne 0 ]
+  then
+    color_msg $red "$l_status: $l_url"
+  else
+    curl -L "$l_url" -s -o "$l_output"
+    if [[ "$l_url" == *.zip ]]; then
+    	unzip -d `dirname $l_output` $l_output
+
+    fi
+  fi
+}
+
+# check given part to have been downloaded
+# param 1: targetdir  (create if not existing)
+# param 2: url
+# param 3: part
+checkPart() {
+  local l_targetdir="$1"
+  local l_url="$2"
+  local l_part="$3"
+  local l_target="$l_targetdir/$l_part"
+  if [ ! -f "$l_target" ]
+  then
+    local l_partdir=$(dirname $l_target)
+    if [ ! -d "$l_partdir" ]
+    then
+      mkdir -p "$l_partdir"
+    fi
+    color_msg $blue "downloading $l_part from $l_url/$l_part"
+    # echo curl -L $l_url/$l_part -s -o "$l_target"
+    download "$l_url/$l_part"  "$l_target"
+  else
+    color_msg  $green "$l_part already downloaded"
+  fi
+}
+
+# check parts specified in here document
+# param 1: check directory
+checkParts() {
+  local l_check="$1"
+  local l_done="false"
+  read l_target
+  read l_title
+  read l_home
+  read l_url
+  if [ "$l_check" = true ]
+  then
+    if [ ! -d "$l_target" ]
+    then
+      mkdir -p $l_target
+      color_msg $blue "downloading $l_title (see $l_home) from $l_url"
+    else
+      l_done=true
+      color_msg $green "$l_title already downloaded"
+    fi
+  fi
+  if [ ! "$l_done" = true ]
+  then
+    #curl -I $l_url
+    #echo $?
+    while read part
+    do
+      checkPart "$l_target" "$l_url" $part
+    done
+  fi
+}
+
+bootstrap() {
+  local l_target="$1"
+  cat << EOF | checkParts true
+  $l_target
+  Bootstrap
+  https://getbootstrap.com
+  https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist
+css/bootstrap.min.css
+css/bootstrap-reboot.min.css.map
+css/bootstrap.css
+css/bootstrap-grid.css.map
+css/bootstrap-grid.min.css
+css/bootstrap.css.map
+css/bootstrap.min.css.map
+css/bootstrap-reboot.min.css
+css/bootstrap-reboot.css
+css/bootstrap-grid.css
+css/bootstrap-grid.min.css.map
+css/bootstrap-reboot.css.map
+js/bootstrap.bundle.js
+js/bootstrap.bundle.min.js.map
+js/bootstrap.bundle.js.map
+js/bootstrap.js
+js/bootstrap.bundle.min.js
+js/bootstrap.min.js
+js/bootstrap.js.map
+js/bootstrap.min.js.map
+EOF
+}
+
+# get Bootstrap Icons
+bootstrapIcons() {
+  local l_target="$1"
+  cat << EOF | checkParts true
+    $l_target
+    Bootstrap Icons
+    https://icons.getbootstrap.com/#icons
+    https://github.com/twbs/icons/releases/download/v1.7.2
+    bootstrap-icons-1.7.2.zip
+EOF
+}
+
+
+scriptdir=$(dirname $0)
+
+# get bootstrap
+bootstrap "./web/bootstrap"
+
+bootstrapIcons "./web/bootstrap-icons"
