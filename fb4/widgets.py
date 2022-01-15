@@ -400,6 +400,7 @@ class LodTable(Widget):
                         $(document).ready(function() {{
                             $('#{self.id}').DataTable();
                         }});
+                        $('#{self.id}').DataTable();
                         </script>"""
         return name + Markup(table)
 

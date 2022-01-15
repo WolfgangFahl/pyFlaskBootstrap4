@@ -3,15 +3,15 @@ Created on 2021-02-06
 
 @author: wf
 '''
+import io
 import json
 import uuid
 import time
+import mimetypes
 from collections import Generator
 from datetime import datetime, timedelta
 from functools import partial
-from typing import Optional
-
-from flask import Blueprint, Response, request, abort,stream_with_context
+from flask import Blueprint, Response, request, abort, stream_with_context, send_file
 from queue import Queue, Empty
 from pydispatch import dispatcher
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -22,7 +22,7 @@ class SSE_BluePrint(object):
     a blueprint for server side events 
     '''
 
-    def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False,withScheduler=True, baseUrl:str=None):
+    def __init__(self,app,name:str,template_folder:str=None,debug=False,withContext=False,withScheduler=True, appWrap=None):
         '''
         Constructor
         Args:
@@ -32,7 +32,7 @@ class SSE_BluePrint(object):
             debug(bool): If true debug messages are printed
             withContext(bool): Send responses with request context
             withScheduler(bool):
-            baseUrl: url base of the server that needs to added infront of path to the api
+            appWrap: appWrap with additional context for the app
         '''
         self.name=name
         self.debug=debug
@@ -43,19 +43,34 @@ class SSE_BluePrint(object):
             self.template_folder='templates'    
         self.blueprint=Blueprint(name,__name__,template_folder=self.template_folder)
         self.app=app
+        self.appWrap=appWrap
         if withScheduler:
             self.scheduler=BackgroundScheduler()
             self.scheduler.start()
         else:
             self.scheduler=None
         app.register_blueprint(self.blueprint)
-        self.baseUrl=baseUrl
+
+        @self.app.route('/sse/file/<id>')
+        def retrieveFile(id):
+            fileGen=PubSub.subscribe(id,1)
+            file=next(fileGen)
+            PubSub.close(id)
+            if isinstance(file, io.BytesIO):
+                mimeType= mimetypes.guess_type(file.name)
+                return send_file(file, as_attachment=True, attachment_filename=file.name, mimetype=mimeType[0])
         
         @self.app.route('/sse/<channel>')
         def subscribe(channel):
             def events():
                 return PubSub.subscribe(channel)
             return self.streamGen(events())
+
+    @property
+    def baseUrl(self):
+        if self.appWrap is not None:
+            return getattr(self.app, "baseUrl", None)
+        return None
                 
     def streamSSE(self,ssegenerator): 
         '''
@@ -124,12 +139,12 @@ class SSE_BluePrint(object):
         if self.debug:
             logging.basicConfig(level=logging.DEBUG, format='%(asctime)s.%(msecs)03d %(levelname)s:\t%(message)s', datefmt='%Y-%m-%d %H:%M:%S')
             
-    def publish(self, message:str, channel:str='sse', debug=False):
+    def publish(self, message, channel:str='sse', debug=False):
         """
         Publish data as a server-sent event.
         
         Args:
-            message(str): the message to send
+            message: the message to send
             channel(str): If you want to direct different events to different
                 clients, you may specify a channel for this event to go to.
                 Only clients listening to the same channel will receive this event.
@@ -216,13 +231,13 @@ class PubSub:
         return pubsub
     
     @staticmethod    
-    def publish(channel:str,message:str,debug=False):
+    def publish(channel:str,message,debug=False):
         '''
         publish a message via the given channel
         
         Args:
             channel(str): the id of the channel to use
-            message(str): the message to publish/send
+            message: the message to publish/send
         Returns:
             PubSub: the pub sub for the channel
             
@@ -298,6 +313,18 @@ class PubSub:
             dispatcher.disconnect(self.receive, signal=self.channel)
         pass
 
+    @classmethod
+    def close(cls, channel):
+        """
+        Close the channel for given id
+
+        Args:
+            channel(str): id of the channel to close
+        """
+        pubsub=PubSub.forChannel(channel)
+        pubsub.unsubscribe()
+        pubsub.queue.task_done()
+
 
 class DictStream:
     '''
@@ -305,7 +332,7 @@ class DictStream:
     Also provides functions to set the client side javascript code to subscribe to those results
     '''
 
-    def __init__(self, generator: Generator, slowdown: float = 0.0, sseBlueprint: SSE_BluePrint = None):
+    def __init__(self, generator, slowdown: float = 0.0, sseBlueprint: SSE_BluePrint = None):
         self.sseBl = sseBlueprint
         if slowdown > 0:
             def slowdown():
@@ -355,7 +382,11 @@ class DictStream:
 
         buffer = []
         oldepoch = datetime.now()
+        result=None
         for resPart in self.generator:
+            if isinstance(resPart, DictStreamResult):
+                result=resPart
+                break
             buffer.append(resPart)
             if time_passed(oldepoch, timedelta(seconds=bundleTime)):
                 self.sseBl.publish(json.dumps({'data': buffer}), self.sseChannel)
@@ -363,7 +394,10 @@ class DictStream:
                 oldepoch = datetime.now()
         if buffer:
             self.sseBl.publish(json.dumps({'data': buffer}), self.sseChannel)
-        self.sseBl.publish(None, self.sseChannel)
+        if result:
+            self.sseBl.publish(json.dumps(result.getResponse(self)), self.sseChannel)
+        else:
+            self.sseBl.publish(None, self.sseChannel)
 
     def progressMessages(self, show: int = -1, completdeMsg: str = None):
         """
@@ -409,3 +443,91 @@ class DictStream:
             sseChannel = f"/sse/{self.sseChannel}"
         fillProgressBar = f'<script>showProgressMessages("{self.sseChannel}","{sseChannel}");</script>'
         return script + progressMessages + fillProgressBar
+
+    def progressWithDisplayOfResult(self):
+        """
+        Assumption: Gets progress messages in form of strings and a final result. The progress messages are displayed to
+        as simple progress messages and the final result can be either a raw html element that is than embedded into the
+        page or a file which is than forwarded to the user
+        """
+        script = f"""
+                <script>
+                    function showProgressMessages(id,url) {{
+                        var targetContainer = document.getElementById(id);
+                        var eventSource = new EventSource(url);
+                            eventSource.onmessage = function(msg) {{
+                            console.log(msg.data);
+                            var e = JSON.parse(msg.data);
+                            if (e.data == null){{
+                                eventSource.close();
+                                if (e.result != null){{
+                                    var parser = new DOMParser();
+                                    var htmlDoc = parser.parseFromString(e.result, 'text/html');
+                                    console.log('Adding received result to target div');
+                                    targetContainer.append(...htmlDoc.body.childNodes);
+                                    console.log('Running received script tags');
+                                    for (const element of $('#'+id).find('script')){{
+                                        console.log(element.text);
+                                        eval(element.text);
+                                    }}
+                                }}
+                                if (e.file != null){{
+                                    console.log('Get file form:', window.location.origin + e.file);
+                                    window.location.href = window.location.origin + e.file;
+                                }}
+                            }}else{{
+                                if (Array.isArray(e.data)){{
+                                    targetContainer.innerHTML +=e.data.join("");
+                                }}else{{
+                                    targetContainer.innerHTML += e.data;
+                                }}
+                            }}
+                        }};
+                    }};
+                </script>"""
+        progressMessages = f"""<pre id="{self.sseChannel}"></pre>"""
+        if self.sseBl.baseUrl:
+            sseChannel = f"{self.sseBl.baseUrl}/sse/{self.sseChannel}"
+        else:
+            sseChannel = f"/sse/{self.sseChannel}"
+        fillProgressBar = f'<script>showProgressMessages("{self.sseChannel}","{sseChannel}");</script>'
+        return script + progressMessages + fillProgressBar
+
+
+class DictStreamResult:
+    """
+    Indicates the end of a DictStream and can contain a final result
+    """
+    __slots__ = ["result"]
+
+    def __init__(self, result):
+        self.result=result
+
+    def getResponse(self, dictStream:DictStream)->dict:
+        """
+        Returns the final stream result
+        """
+        return {'data': None, 'result': self.result}
+
+
+class DictStreamFileResult(DictStreamResult):
+    """
+    Indicates the end of a DictStream and can contain final result in form of a file that is than offered for download
+    """
+    __slots__ = ["result", "file"]
+
+    def __init__(self, result, file:io.BytesIO):
+        super().__init__(result=result)
+        self.file=file
+
+    def getResponse(self, dictStream:DictStream)->dict:
+        """
+        Returns the final stream result and registers the file for download
+        """
+        channel=str(uuid.uuid1())
+        fileChannel=f"sse/file/{channel}"
+        if dictStream.sseBl.baseUrl:
+            fileChannel=f"{dictStream.sseBl.baseUrl}/{fileChannel}"
+        fileChannel=f"/{fileChannel}"
+        dictStream.sseBl.publish(self.file, channel=channel)
+        return {'data': None, 'result': self.result, 'file':fileChannel}

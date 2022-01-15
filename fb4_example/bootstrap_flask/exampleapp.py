@@ -2,6 +2,7 @@
 import uuid
 
 from fb4.app import AppWrap
+from fb4.icons_bp import IconsBlueprint
 from fb4.login_bp import LoginForm
 from fb4.sqldb import db
 from fb4.login_bp import LoginBluePrint
@@ -126,13 +127,14 @@ class ExampleApp(AppWrap):
         self.csrf = CSRFProtect(self.app)
         self.loginBluePrint=LoginBluePrint(self.app,'login')
         self.loginBluePrint.hint="'try user: scott, password: tiger2021'"
-        self.sseBluePrint=SSE_BluePrint(self.app,'sse', baseUrl=self.baseUrl)
+        self.sseBluePrint=SSE_BluePrint(self.app,'sse', appWrap=self)
+        self.icons=IconsBlueprint(self.app, "icons", appWrap=self)
         app=self.app
         link1=Link("http://greyli.com/",title="Grey Li")
         link2=Link("http://www.bitplan.com/Wolfgang_Fahl",title="Wolfgang Fahl")
         link=f"{link1}→{link2}"
         self.copyRight=Copyright(period="2018-2022",link=link)
-        
+
         #
         # setup global handlers
         #
@@ -162,7 +164,7 @@ class ExampleApp(AppWrap):
         @app.route('/pagination', methods=['GET', 'POST'])
         def test_pagination():
             return self.pagination()
-        
+
         @app.route('/startsse1', methods=['POST'])
         def test_startSSE1():
             return self.startSSE1()
@@ -198,7 +200,11 @@ class ExampleApp(AppWrap):
         @app.route('/widgets', methods=['GET', 'POST'])
         def test_widgets():
             return self.widgets()
-        
+
+        @app.route('/bootstrapicons')
+        def test_bootstrapIcons():
+            return self.bootstrapIcons()
+
         @app.route('/ping',methods=['GET', 'POST'])
         def test_ping():
             return self.ping()
@@ -338,14 +344,14 @@ class ExampleApp(AppWrap):
         gen = ({"id": i, "data": str(uuid.uuid1())} for i in range(150))
         generator = self.sseBluePrint.streamDictGenerator(gen, slowdown=1)
         return self.render_template("event.html", dictStreamdemo=generator)
-    
+
     def render_template(self,templateName,**kwArgs):
         '''
         render the given template with the default arguments
         '''
         html=render_template(templateName,menu=self.getMenu(),copyright=self.copyRight,**kwArgs)
         return html
-    
+
     def flash(self):
         '''
         '''
@@ -359,7 +365,7 @@ class ExampleApp(AppWrap):
         flash('A simple light alert—check it out!', 'light')
         flash('A simple dark alert—check it out!', 'dark')
         flash(Markup('A simple success alert with <a href="#" class="alert-link">an example link</a>. Give it a click if you like.'), 'success')
-        return self.render_template('flash.html')       
+        return self.render_template('flash.html')
     
     def form(self):
         '''
@@ -382,7 +388,7 @@ class ExampleApp(AppWrap):
             fileInfo=f"{fileInfo}{delim}{uploadInfo}"
             delim=", "
         return fileInfo
-    
+
     def uploadFile(self,file,targetFileName,uploadDirectory):
         '''
         upload the given file
@@ -397,7 +403,7 @@ class ExampleApp(AppWrap):
         size=os.path.getsize(filePath)
         fileInfo=f"{file.filename}→{targetFileName}({size})"
         return fileInfo
-        
+
     def upload(self):
         '''
         handle the uploading
@@ -423,14 +429,14 @@ class ExampleApp(AppWrap):
         for endpoint,title,mdiIcon,newTab in self.getMenuEntries():
             menu.addItem(MenuItem(self.basedUrl(url_for(endpoint)),title=title,mdiIcon=mdiIcon,newTab=newTab))
         menu.addItem(MenuItem("https://bootstrap-flask.readthedocs.io/",title="Documentation",mdiIcon="description",newTab=True))
-        menu.addItem(MenuItem("https://github.com/greyli/bootstrap-flask",title="greyli",newTab=True)) 
+        menu.addItem(MenuItem("https://github.com/greyli/bootstrap-flask",title="greyli",newTab=True))
         menu.addItem(MenuItem("https://github.com/WolfgangFahl/pyFlaskBootstrap4",title="github",newTab=True))
         if current_user.is_anonymous:
             menu.addItem(MenuItem('/login','login',mdiIcon="login"))
         else:
             menu.addItem(MenuItem('/logout','logout',mdiIcon="logout"))
         return menu
-    
+
     def getMenuEntries(self):
         entries=  [
               ('index',"Home","home",False),
@@ -444,10 +450,11 @@ class ExampleApp(AppWrap):
               ('test_table',"Table","table_chart",False),
               ('test_datatable',"DataTable","table_rows",False),
               ('test_icon',"Icon","insert_emoticon",False),
-              ('test_widgets',"Widgets","widgets",False)
-        ]      
+              ('test_widgets',"Widgets","widgets",False),
+              ('test_bootstrapIcons',"Bootstrap Icons", "web_asset",False)
+        ]
         return entries
-     
+
     def getMenuLinks(self):
         links=[]
         for endpoint,title,_mdiIcon,newTab in self.getMenuEntries():
@@ -541,7 +548,7 @@ class ExampleApp(AppWrap):
         dictList=[]
         for icon in icons:
             dictList.append(icon.asDict())
-        lodKeys=dictList[0].keys()
+        lodKeys={d.keys() for d in dictList[:1]}
         return self.render_template('datatable.html',listOfDicts=dictList,lodKeys=lodKeys,tableHeaders=lodKeys)
     
     def table(self):
@@ -607,6 +614,12 @@ class ExampleApp(AppWrap):
             
         ]
         return self.render_template('widgets.html',widgetList=widgetList)
+
+    def bootstrapIcons(self):
+        """
+        returns index page of Bootstrap Icons displaying a table of all available icons
+        """
+        return self.render_template('bootstrapIcons.html')
     
 # initialization of flask globals
 # we can't help that these are needed and can't be wrapped
