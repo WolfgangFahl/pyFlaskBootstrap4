@@ -8,7 +8,6 @@ import json
 import uuid
 import time
 import mimetypes
-from collections import Generator
 from datetime import datetime, timedelta
 from functools import partial
 from flask import Blueprint, Response, request, abort, stream_with_context, send_file
