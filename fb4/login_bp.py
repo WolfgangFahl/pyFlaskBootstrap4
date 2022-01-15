@@ -107,13 +107,13 @@ class LoginBluePrint(object):
             username(str): the username for the user
             password(str): the password for the user - only a hash will be stored
         Returns:
-            the user ust added
+            the user just added
         '''
         u=User(id=userid,username=username)
         u.setPassword(password)
         db.session.add(u)
         db.session.commit()
-        return User
+        return u
 
 class LoginForm(FlaskForm):
     '''
