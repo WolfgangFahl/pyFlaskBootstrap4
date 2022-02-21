@@ -68,7 +68,7 @@ class SSE_BluePrint(object):
     @property
     def baseUrl(self):
         if self.appWrap is not None:
-            return getattr(self.app, "baseUrl", None)
+            return getattr(self.appWrap, "baseUrl", None)
         return None
                 
     def streamSSE(self,ssegenerator): 
