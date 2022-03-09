@@ -85,7 +85,7 @@ class Link(Widget):
     '''
     a HTML link
     '''
-    def __init__(self,url,title=None,tooltip=None,indent="",newTab=False):
+    def __init__(self,url,title=None,tooltip=None,indent="",newTab:bool=False,style:str=None):
         '''
         constructor
         
@@ -100,12 +100,13 @@ class Link(Widget):
         self.title="" if title is None else title
         self.tooltip=f" title='{tooltip}'" if tooltip is not None else ""
         self.target=f" target='_blank'" if newTab else ""
+        self.style="" if style is None else f" style='{style}'"
         
     def render(self):
         '''
         render a Link
         '''
-        html=f"{self.indent}<a href='{self.url}'{self.getClass()}{self.tooltip}{self.target}>{self.title}</a>"
+        html=f"{self.indent}<a href='{self.url}'{self.getClass()}{self.tooltip}{self.target}{self.style}>{self.title}</a>"
         return html
         
 class Image(Widget):
