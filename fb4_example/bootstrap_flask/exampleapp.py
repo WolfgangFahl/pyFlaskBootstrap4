@@ -548,7 +548,7 @@ class ExampleApp(AppWrap):
         dictList=[]
         for icon in icons:
             dictList.append(icon.asDict())
-        lodKeys={d.keys() for d in dictList[:1]}
+        lodKeys=dictList[0].keys()
         return self.render_template('datatable.html',listOfDicts=dictList,lodKeys=lodKeys,tableHeaders=lodKeys)
     
     def table(self):
