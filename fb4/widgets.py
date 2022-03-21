@@ -553,12 +553,10 @@ class DropZoneField(FileField):
         return Markup(f'<div class="dropzone-previews" id="{self.fieldId}Field" action="submit"></div> <div class="dz-default dz-message" data-dz-message><span>{self.dzInfoMsg}</span></div>') + Markup(setClass) + Markup(self.jsConfig())
 
 
-
 class ButtonWidget(object):
     """
     See https://gist.github.com/doobeh/239b1e4586c7425e5114
-    Renders a multi-line text area.
-    `rows` and `cols` ought to be passed as keyword args when rendering.
+    Renders a button
     """
     input_type = 'button'
 
