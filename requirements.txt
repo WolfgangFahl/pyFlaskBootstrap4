@@ -26,4 +26,4 @@ pydevd
 # http://pydispatcher.sourceforge.net/
 PyDispatcher
 # https://pypi.org/project/APScheduler/
-APScheduler~=3.8.1
+APScheduler~=3.9.1

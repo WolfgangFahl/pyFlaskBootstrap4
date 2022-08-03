@@ -52,6 +52,6 @@ setup(name='pyFlaskBootstrap4',
           'requests',
           'pydevd',
           'pyDispatcher',
-          'APScheduler~=3.8.1'
+          'APScheduler~=3.9.1'
       ],
       zip_safe=False)
