@@ -49,7 +49,7 @@ class Test_ServerSentEvents(unittest.TestCase):
             self.fail("should raise an exception")
         except Exception as ex:
             msg=str(ex)
-            self.assertEqual("publish() missing 1 required positional argument: 'message'",msg)
+            self.assertTrue("publish() missing 1 required positional argument: 'message'" in msg)
         self.assertEqual({},PubSub.pubSubByChannel)
         
     def test_publish(self):
