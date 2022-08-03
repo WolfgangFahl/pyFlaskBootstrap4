@@ -130,3 +130,6 @@ dmypy.json
 
 # eclipse
 .settings
+
+# downloaded web elements
+web
