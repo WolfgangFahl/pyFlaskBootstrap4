@@ -6,7 +6,7 @@ Bootstrap-Flask~=1.8.0
 # https://github.com/greyli/flask-dropzone
 Flask-Dropzone~=1.6.0
 #https://pypi.org/project/Flask-Login/
-Flask-Login~=0.6.1
+Flask-Login>=0.6.2
 # https://pypi.org/project/Flask-HTTPAuth/
 Flask-HTTPAuth
 # https://pypi.org/project/Flask-SQLAlchemy/
