@@ -175,7 +175,7 @@ class Icon(Widget):
             pass
         iconsFile=None
         for proot in proots:
-            iconsFile="%s/flask_bootstrap/static/icons/bootstrap-icons.svg" % proot
+            iconsFile=f"{proot}/flask_bootstrap/static/icons/bootstrap-icons.svg" 
             if os.path.isfile(iconsFile):
                 break
             else:

@@ -6,8 +6,8 @@ Created on 2021-01-17
 import unittest
 from fb4.widgets import Icon
 import getpass
-
-class TestIcons(unittest.TestCase):
+from tests.basetest import BaseTest
+class TestIcons(BaseTest):
     """
     test Icons
     """
@@ -25,7 +25,7 @@ class TestIcons(unittest.TestCase):
         '''
         test getting the bootstrap Icons File
         '''        
-        if getpass.getuser()=="travis":
+        if self.inPublicCI():
             return
         iconsFile=Icon.getBootstrapIconsFile()
         self.assertTrue(iconsFile is not None)
