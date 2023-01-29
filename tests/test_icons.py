@@ -8,6 +8,9 @@ from fb4.widgets import Icon
 import getpass
 
 class TestIcons(unittest.TestCase):
+    """
+    test Icons
+    """
 
 
     def setUp(self):
