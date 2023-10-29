@@ -1,6 +1,6 @@
 # web server
 # https://pypi.org/project/Flask/
-Flask>=2.0.2
+Flask>=2.0.2,<=2.2.4
 # https://pypi.org/project/Bootstrap-Flask/
 Bootstrap-Flask>=1.8.0
 # https://github.com/greyli/flask-dropzone
