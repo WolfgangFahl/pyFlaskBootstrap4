@@ -14,11 +14,18 @@ What it is
 ==========
 Flask + Bootstrap 4 static components and templates for webprojects
 
+State of project 
+================
+This project has been dropped/sunset. We had too much
+hassle with Flask dependencies being instable and no proper support for
+async handling so we moved on to use:https://nicegui.io/ instead
+
+As of 2023-10-29 the demo still partly works. We do not actively pursue fixes any more.
+
 Demos
 =====
 see 
 * http://fb4demo.bitplan.com/
-* https://confident.dbis.rwth-aachen.de/dblpconf/
 
 Installation
 ============
