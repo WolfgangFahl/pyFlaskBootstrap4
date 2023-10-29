@@ -1,6 +1,9 @@
 # web server
 # https://pypi.org/project/Flask/
-Flask>=2.0.2,<=2.2.4
+Flask==2.2.4
+# Werkzeug see
+# https://stackoverflow.com/questions/77215107/importerror-cannot-import-name-url-decode-from-werkzeug-urls
+Werkzeug==2.3.0
 # https://pypi.org/project/Bootstrap-Flask/
 Bootstrap-Flask>=1.8.0
 # https://github.com/greyli/flask-dropzone
